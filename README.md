@@ -25,6 +25,8 @@ TODO, for now please take a look at sample chat [server](ChatServer) and [client
 * Thread safety
 * More...
 
+### TODO
+* Add summaries.
 
 ### Notes
 * This wrapper holds x86 and x64 release versions of ENet from [this](google.com) repo in its resources and will extracted to temp folder by default. Anyway you change path by setting <Code>LibENet.DllPath</code> before calling <code>ManagedENet.Startup</code> but keep in mind you have seperate x86 and x64 path by checking <code>Environment.Is64BitProcess</code>.
