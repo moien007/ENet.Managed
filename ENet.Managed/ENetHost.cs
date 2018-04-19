@@ -46,6 +46,7 @@ namespace ENet.Managed
         public long TotalReceivedData { get { lock (Sync) return *_pTotalReceivedData; } }
         public long TotalReceivedPackets { get { lock (Sync) return *_pTotalReceivedPackets; } }
         public int ConnectedPeers { get { lock (Sync) return (int)(*_pConnectedPeers); } }
+        public bool ServiceThreadStarted { get { lock (Sync) return _Thread != null; } }
 
         public event EventHandler<ENetConnectEventArgs> OnConnect;
         public event EventHandler<ENetDisconnectEventArgs> OnDisconnect;
@@ -112,6 +113,11 @@ namespace ENet.Managed
             }
         }
 
+        public void Broadcast(byte[] buffer, Enum channel, ENetPacketFlags flags)
+        {
+            Broadcast(buffer, Convert.ToByte(channel), flags);
+        }
+
         public void Broadcast(byte[] buffer, byte channel, ENetPacketFlags flags)
         {
             lock (Sync)
@@ -124,6 +130,11 @@ namespace ENet.Managed
                 }
                 LibENet.HostBroadcast(Pointer, channel, packet);
             }
+        }
+
+        public void Multicast(byte[] buffer, Enum channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers)
+        {
+            Multicast(buffer, Convert.ToByte(channel), flags, peers);
         }
 
         public void Multicast(byte[] buffer, byte channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers)
@@ -170,10 +181,6 @@ namespace ENet.Managed
             }
         }
 
-        /// <summary>
-        /// Limits the maximum allowed channels of future incoming connections.
-        /// </summary>
-        /// <param name="channels">The maximum number of channels allowed, pass zero to use maximum number of channels</param>
         public void ChannelLimit(byte channels)
         {
             lock (Sync)
@@ -509,6 +516,8 @@ namespace ENet.Managed
             lock (Sync)
             {
                 if (Pointer == IntPtr.Zero) return;
+
+                try { StopServiceThread(); } catch { }
 
                 if (Compressor != null)
                 {

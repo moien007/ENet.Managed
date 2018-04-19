@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Native = ENet.Managed.Structures;
 using System.Net;
@@ -15,7 +16,7 @@ namespace ENet.Managed
         public IntPtr Handle { get; private set; }
         public Native.ENetPeer* Unsafe { get; private set; }
         public ENetPeerState State { get { lock (Host.Sync) return Unsafe->State; } }
-        public object Data { get; private set; }
+        public object Data { get; set; }
         public IPEndPoint RemoteEndPoint { get; internal set; }
 
         internal ENetPeer(ENetHost host, Native.ENetPeer* native)
@@ -77,6 +78,11 @@ namespace ENet.Managed
             }
         }
 
+        public void Send(byte[] buffer, Enum channel, ENetPacketFlags flags)
+        {
+            Send(buffer, Convert.ToByte(channel), flags);
+        }
+
         public void Send(byte[] buffer, byte channel, ENetPacketFlags flags)
         {
             lock (Host.Sync)
@@ -126,6 +132,12 @@ namespace ENet.Managed
             {
                 LibENet.PeerTimeout(Unsafe, timeoutLimit, timeoutMinimum, timeoutMaximum);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T GetDataAs<T>()
+        {
+            return (T)Data;
         }
 
         internal void FreeHandle()
