@@ -593,7 +593,14 @@ namespace ENet.Managed
                 case ENetEventType.None: return null;
                 case ENetEventType.Connect:
                     var connect = new ENetConnectEventArgs();
-                    connect.Peer = new ENetPeer(this, native.Peer);
+                    if (native.Peer->Data == IntPtr.Zero)
+                    {
+                        connect.Peer = new ENetPeer(this, native.Peer);
+                    }
+                    else
+                    {
+                        connect.Peer = ENetPeer.FromPtr(native.Peer->Data);
+                    }
                     connect.Peer.RemoteEndPoint = native.Peer->Address.ToEndPoint();
                     connect.Data = native.Data;
                     return connect;
