@@ -37,7 +37,7 @@ Contributions are welcome.
 ### License
 nope.
 
-[enet-repo]: www.github.com/lsalzman/enet
-[benchmark]: www.github.com/nxrighthere/BenchmarkNet/wiki/Benchmark-Results
-[nuget]: www.nuget.org/packages/ENet.Managed
+[enet-repo]: http://www.github.com/lsalzman/enet
+[benchmark]: http://www.github.com/nxrighthere/BenchmarkNet/wiki/Benchmark-Results
+[nuget]: http://www.nuget.org/packages/ENet.Managed
 
