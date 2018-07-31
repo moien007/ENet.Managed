@@ -14,7 +14,7 @@ Also <b>I didn't test it with Unity</b> so please tell me if it works with Unity
 #### [Available on NuGet][nuget]
 ---
 ### Quick start (Usage)
-TODO, for now please take a look at sample chat [server](ChatServer) and [client](ChatClient).
+TODO, for now please take a look at ENetChatSample
 
 ### Features
 * Supports Any CPU
