@@ -21,7 +21,7 @@ TODO, for now please take a look at ENetChatSample
 * Multicast
 * Custom compression (Not enabled by default, recommended to specify a compressor using <code>CompressWith*</code>)
 * Custom checksum (Not enabled by default, recommended to specify a checksum using <code>ChecksumWith*</code>)
-* Custom allocator (by default ManagedENet forces the ENet to use a custom allocator which is faster than malloc, take a look at <code>ENetManagedAllocator.cs</code>)
+* Custom allocator (by default ManagedENet forces ENet to use a custom allocator which is faster than malloc, take a look at <code>ENetManagedAllocator.cs</code>)
 * And more
 
 ### TODO
