@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.IO;
 using Native = ENet.Managed.Structures;
@@ -238,7 +234,9 @@ namespace ENet.Managed
             if (DllHandle != IntPtr.Zero)
                 Win32.FreeLibrary(DllHandle);
 
-            var dllBytes = Environment.Is64BitProcess ? UnmanagedResource.libenet_64 : UnmanagedResource.libenet_32;
+            var dllBytes = Environment.Is64BitProcess ?
+                           ENetBinariesResource.libenet_64 : 
+                           ENetBinariesResource.libenet_32;
 
             if (!File.Exists(DllPath) || overwrite)
             {

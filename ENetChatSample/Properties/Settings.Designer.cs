@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ChatSample.Properties
+namespace ENetChatSample.Properties
 {
 
 

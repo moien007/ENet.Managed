@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ENetAllocator.cs" />
     <Compile Include="ENetChecksum.cs" />
     <Compile Include="ENetCompressor.cs" />
     <Compile Include="ENetEvent.cs" />
@@ -49,12 +50,14 @@
     <Compile Include="ENetDeflateCompressor.cs" />
     <Compile Include="ENetHost.cs" />
     <Compile Include="ENetInterceptor.cs" />
+    <Compile Include="ENetManagedAllocator.cs" />
     <Compile Include="ENetMulticastException.cs" />
     <Compile Include="ENetPacket.cs" />
     <Compile Include="ENetPacketFlags.cs" />
     <Compile Include="ENetPeer.cs" />
     <Compile Include="ENetPeerState.cs" />
     <Compile Include="ENetUtils.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="LibENet.cs" />
     <Compile Include="ManagedENet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,17 +71,17 @@
     <Compile Include="Structures\ENetList.cs" />
     <Compile Include="Structures\ENetPacket.cs" />
     <Compile Include="Structures\ENetPeer.cs" />
-    <Compile Include="UnmanagedResource.Designer.cs">
+    <Compile Include="ENetBinariesResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>UnmanagedResource.resx</DependentUpon>
+      <DependentUpon>ENetBinariesResource.resx</DependentUpon>
     </Compile>
     <Compile Include="Win32.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UnmanagedResource.resx">
+    <EmbeddedResource Include="ENetBinariesResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>UnmanagedResource.Designer.cs</LastGenOutput>
+      <LastGenOutput>ENetBinariesResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

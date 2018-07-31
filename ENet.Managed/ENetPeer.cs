@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Native = ENet.Managed.Structures;
 using System.Net;
@@ -12,70 +7,48 @@ namespace ENet.Managed
 {
     public unsafe class ENetPeer
     {
-        public ENetHost Host { get; private set; }
-        public IntPtr Handle { get; private set; }
+        internal GCHandle Handle;
+
+        public ENetHost Host { get; }
         public Native.ENetPeer* Unsafe { get; private set; }
-        public ENetPeerState State { get { lock (Host.Sync) return Unsafe->State; } }
+        public ENetPeerState State => Unsafe->State;
         public object Data { get; set; }
         public IPEndPoint RemoteEndPoint { get; internal set; }
+
+        public event EventHandler<ENetPacket> OnReceive;
+        public event EventHandler<uint> OnDisconnect; 
 
         internal ENetPeer(ENetHost host, Native.ENetPeer* native)
         {
             Host = host;
-            host._Peers.Add(this);
+            host.m_Peers.Add(this);
             Unsafe = native;
-            Handle = GCHandle.ToIntPtr(GCHandle.Alloc(this, GCHandleType.Normal));
-            Unsafe->Data = Handle;
+            Handle = GCHandle.Alloc(this, GCHandleType.Normal);
+            Unsafe->Data = GCHandle.ToIntPtr(Handle);
         }
 
-        public void Disconnect(uint data)
-        {
-            lock (Host.Sync)
-            {
-                LibENet.PeerDisconnect(Unsafe, data);
-            }
-        }
-
-        public void DisconnectLater(uint data)
-        {
-            lock (Host.Sync)
-            {
-                LibENet.PeerDisconnectLater(Unsafe, data);
-            }
-        }
-
+        public void Disconnect(uint data) => LibENet.PeerDisconnect(Unsafe, data);
+        public void DisconnectLater(uint data) => LibENet.PeerDisconnectLater(Unsafe, data);
         public void DisconnectNow(uint data)
         {
-            lock (Host.Sync)
-            {
-                LibENet.PeerDisconnectNow(Unsafe, data);
-                FreeHandle();
-            }
+            LibENet.PeerDisconnectNow(Unsafe, data);
+            FreeHandle();
         }
 
         public void Reset()
         {
-            lock (Host.Sync)
-            {
-                LibENet.PeerReset(Unsafe);
-                FreeHandle();
-            }
+            LibENet.PeerReset(Unsafe);
+            FreeHandle();
         }
 
         public void Ping()
         {
-            lock (Host.Sync)
-            {
-                LibENet.PeerPing(Unsafe);
-            }
+            LibENet.PeerPing(Unsafe);
         }
 
         public void PingInterval(uint pingInterval)
         {
-            lock (Host.Sync)
-            {
-                LibENet.PeerPingInterval(Unsafe, pingInterval);
-            }
+            LibENet.PeerPingInterval(Unsafe, pingInterval);
         }
 
         public void Send(byte[] buffer, Enum channel, ENetPacketFlags flags)
@@ -85,70 +58,53 @@ namespace ENet.Managed
 
         public void Send(byte[] buffer, byte channel, ENetPacketFlags flags)
         {
-            lock (Host.Sync)
+            Native.ENetPacket* packet;
+
+            fixed (byte* p = buffer)
             {
-                Native.ENetPacket* packet;
-
-                fixed (byte* p = buffer)
-                {
-                    packet = LibENet.PacketCreate((IntPtr)p, (UIntPtr)buffer.Length, flags & ~ENetPacketFlags.NoAllocate);
-                }
-
-                if (LibENet.PeerSend(Unsafe, channel, packet) < 0)
-                    throw new Exception("Failed to send packet to peer.");
+                packet = LibENet.PacketCreate((IntPtr)p, (UIntPtr)buffer.Length, flags & ~ENetPacketFlags.NoAllocate);
             }
+
+            if (LibENet.PeerSend(Unsafe, channel, packet) < 0)
+                throw new Exception("Failed to send packet to peer.");
         }
 
         public bool Receive(out ENetPacket packet)
         {
-            lock (Host.Sync)
-            {
-                byte channel = 0;
-                packet = null;
-                Native.ENetPacket* native;
+            byte channel = 0;
+            packet = null;
+            Native.ENetPacket* native;
 
-                native = LibENet.PeerReceive(Unsafe, &channel);
+            native = LibENet.PeerReceive(Unsafe, &channel);
 
-                if (((IntPtr)native) == IntPtr.Zero)
-                    return false;
+            if (((IntPtr)native) == IntPtr.Zero)
+                return false;
 
-                packet = new ENetPacket(native, channel);
-                LibENet.PacketDestroy(native);
-                return true;
-            }
+            packet = new ENetPacket(native, channel);
+            LibENet.PacketDestroy(native);
+            return true;
         }
 
-        public void ThrottleConfigure(uint interval, uint acceleration, uint deceleration)
-        {
-            lock (Host.Sync)
-            {
+        public void ThrottleConfigure(uint interval, uint acceleration, uint deceleration) =>
                 LibENet.PeerThrottleConfigure(Unsafe, interval, acceleration, deceleration);
-            }
-        }
 
-        public void Timeout(uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum)
-        {
-            lock (Host.Sync)
-            {
+
+        public void Timeout(uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum) =>
                 LibENet.PeerTimeout(Unsafe, timeoutLimit, timeoutMinimum, timeoutMaximum);
-            }
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetDataAs<T>()
-        {
-            return (T)Data;
-        }
+
+        internal void RaiseReceiveEvent(ENetPacket packet) => OnReceive?.Invoke(this, packet);
+        internal void RaiseDisconnectEvent(uint data) => OnDisconnect?.Invoke(this, data);
 
         internal void FreeHandle()
         {
-            if (Handle == IntPtr.Zero)
+            if (Handle == default(GCHandle))
                 return;
 
-            Host._Peers.Remove(this);
+            Host.m_Peers.Remove(this);
             Unsafe->Data = IntPtr.Zero;
-            GCHandle.FromIntPtr(Handle).Free();
-            Handle = IntPtr.Zero;
+            Handle.Free();
+            Handle = default(GCHandle);
         }
 
         internal static ENetPeer FromPtr(IntPtr ptr)

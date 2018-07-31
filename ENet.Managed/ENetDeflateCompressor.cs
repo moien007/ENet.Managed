@@ -8,7 +8,7 @@ using System.IO.Compression;
 
 namespace ENet.Managed
 {
-    public class ENetDeflateCompressor : ENetCompressor
+    public sealed class ENetDeflateCompressor : ENetCompressor
     {
         private DeflateStream _Deflate = null;
 

@@ -1,46 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using Native = ENet.Managed.Structures;
 using System.IO;
+using Native = ENet.Managed.Structures;
 
 namespace ENet.Managed
 {
     public unsafe class ENetPacket
     {
-        internal byte[] _Payload;
+        internal byte[] m_Payload;
 
-        public ENetPacketFlags Flags { get; private set; }
-        public byte Channel { get; private set; }
+        public byte Channel { get; }
+        public ENetPacketFlags Flags { get; }
 
-        internal ENetPacket()
-        {
-
-        }
+        internal ENetPacket() { }
 
         internal ENetPacket(Native.ENetPacket* packet, byte channel)
         {
             Flags = packet->Flags;
-            _Payload = new byte[packet->DataLength.ToUInt32()];
-            fixed (byte* dest = _Payload)
+            m_Payload = new byte[packet->DataLength.ToUInt32()];
+            fixed (byte* dest = m_Payload)
             {
                 ENetUtils.MemoryCopy((IntPtr)dest, (IntPtr)packet->Data, packet->DataLength);
             }
             Channel = channel;
         }
 
-        public byte[] GetPayloadFinal()
-        {
-            return _Payload;
-        }
-
+        public byte[] GetPayloadFinal() => m_Payload;
         public byte[] GetPayloadCopy()
         {
-            byte[] clone = new byte[_Payload.Length];
-            ENetUtils.MemoryCopy(clone, _Payload, clone.Length);
+            byte[] clone = new byte[m_Payload.Length];
+            ENetUtils.MemoryCopy(clone, m_Payload, clone.Length);
             return clone;
         }
 
@@ -48,10 +36,10 @@ namespace ENet.Managed
         {
             if (copy)
             {
-                return new MemoryStream(GetPayloadCopy());
+                return new MemoryStream(GetPayloadCopy(), false);
             }
 
-            return new MemoryStream(_Payload, false);
+            return new MemoryStream(m_Payload, false);
         }
     }
 }
