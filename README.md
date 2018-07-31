@@ -35,7 +35,7 @@ TODO, for now please take a look at ENetChatSample
 Contributions are welcome.
 
 ### License
-nope.
+MIT
 
 [enet-repo]: http://www.github.com/lsalzman/enet
 [benchmark]: http://www.github.com/nxrighthere/BenchmarkNet/wiki/Benchmark-Results
