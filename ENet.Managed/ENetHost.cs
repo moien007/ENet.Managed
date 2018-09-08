@@ -326,7 +326,7 @@ namespace ENet.Managed
             *m_pChecksumCallback = IntPtr.Zero;
         }
 
-        [Obsolete("This feature hasn't tested.")]
+        [Obsolete("This feature is not tested")]
         public void Intercept(ENetInterceptor interceptor)
         {
             if (Interceptor != null)

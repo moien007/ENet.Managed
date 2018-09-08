@@ -10,7 +10,7 @@ namespace ENet.Managed
 {
     public sealed class ENetDeflateCompressor : ENetCompressor
     {
-        private DeflateStream _Deflate = null;
+        private DeflateStream m_Deflate = null;
 
         public CompressionLevel Level { get; private set; }
 
@@ -26,22 +26,22 @@ namespace ENet.Managed
 
         public override void BeginCompress()
         {
-            if (_Deflate != null)
-                _Deflate.Dispose();
+            if (m_Deflate != null)
+                m_Deflate.Dispose();
 
-            _Deflate = new DeflateStream(new MemoryStream(), Level, true);
+            m_Deflate = new DeflateStream(new MemoryStream(), Level, true);
         }
 
         public override void Compress(byte[] buffer)
         {
-            _Deflate.Write(buffer, 0, buffer.Length);
+            m_Deflate.Write(buffer, 0, buffer.Length);
         }
 
         public override byte[] EndCompress()
         {
-            var memory = _Deflate.BaseStream as MemoryStream;
-            _Deflate.Dispose();
-            _Deflate = null;
+            var memory = m_Deflate.BaseStream as MemoryStream;
+            m_Deflate.Dispose();
+            m_Deflate = null;
             var result = memory.ToArray();
             return result;
         }
@@ -61,10 +61,10 @@ namespace ENet.Managed
 
         public override void Dispose()
         {
-            if (_Deflate != null)
+            if (m_Deflate != null)
             {
-                _Deflate.Dispose();
-                _Deflate = null;
+                m_Deflate.Dispose();
+                m_Deflate = null;
             }
         }
     }
