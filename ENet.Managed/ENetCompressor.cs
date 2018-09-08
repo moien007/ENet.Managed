@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ENet.Managed.Platforms;
 using Native = ENet.Managed.Structures;
 
 namespace ENet.Managed
 {
     public unsafe abstract class ENetCompressor : IDisposable
     {
-        internal static Native.ENetCompressCallback CompressDelegate;
-        internal static Native.ENetDecompressCallback DecompressDelegate;
-        internal static Native.ENetDestoryCompressorCallback DestroyDelegate;
+        internal static readonly Native.ENetCompressCallback CompressDelegate;
+        internal static readonly Native.ENetDecompressCallback DecompressDelegate;
+        internal static readonly Native.ENetDestoryCompressorCallback DestroyDelegate;
 
         public ENetHost Host { get; internal set; } = null;
 
@@ -19,11 +20,19 @@ namespace ENet.Managed
             DestroyDelegate = DestroyCallback;
         }
 
+        ~ENetCompressor() => Dispose(false);
+
         public abstract void BeginCompress();
         public abstract void Compress(byte[] buffer);
         public abstract byte[] EndCompress();
         public abstract byte[] Decompress(byte[] input, int outputLimit);
-        public abstract void Dispose();
+        protected virtual void Dispose(bool disposing) { }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         internal IntPtr AllocHandle()
         {
@@ -49,7 +58,7 @@ namespace ENet.Managed
                 
                 fixed (byte* dest = input)
                 {
-                    ENetUtils.MemoryCopy((IntPtr)dest, inBuffer.Data, inBuffer.DataLength);
+                    Platform.Current.MemoryCopy((IntPtr)dest, inBuffer.Data, inBuffer.DataLength);
                 }
 
                 compressor.Compress(input);
@@ -64,7 +73,7 @@ namespace ENet.Managed
 
             fixed (byte* src = result)
             {
-                ENetUtils.MemoryCopy(outData, (IntPtr)src, resultLen);
+                Platform.Current.MemoryCopy(outData, (IntPtr)src, resultLen);
             }
 
             return resultLen;
@@ -81,7 +90,7 @@ namespace ENet.Managed
 
             fixed (byte* dest = input)
             {
-                ENetUtils.MemoryCopy((IntPtr)dest, inData, inLimit);
+                Platform.Current.MemoryCopy((IntPtr)dest, inData, inLimit);
             }
 
             var output = compressor.Decompress(input, (int)outLimit);
@@ -92,7 +101,7 @@ namespace ENet.Managed
 
             fixed (byte* src = output)
             {
-                ENetUtils.MemoryCopy(outData, (IntPtr)src, outputLen);
+                Platform.Current.MemoryCopy(outData, (IntPtr)src, outputLen);
             }
 
             return outputLen;

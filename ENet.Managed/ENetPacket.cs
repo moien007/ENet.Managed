@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Native = ENet.Managed.Structures;
+using ENet.Managed.Platforms;
 
 namespace ENet.Managed
 {
@@ -19,7 +20,7 @@ namespace ENet.Managed
             m_Payload = new byte[packet->DataLength.ToUInt32()];
             fixed (byte* dest = m_Payload)
             {
-                ENetUtils.MemoryCopy((IntPtr)dest, (IntPtr)packet->Data, packet->DataLength);
+                Platform.Current.MemoryCopy((IntPtr)dest, (IntPtr)packet->Data, packet->DataLength);
             }
             Channel = channel;
         }

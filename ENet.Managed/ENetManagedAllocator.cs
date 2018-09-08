@@ -43,7 +43,7 @@ namespace ENet.Managed
                 var segment = m_Segments[index];
                 if (segment.Count == size)
                 {
-                    m_Segments.FastRemoveAt(index);
+                    m_Segments.OrderlessRemoveAt(index);
                     m_TakenSegments.Add(segment);
                     return IntPtr.Add(m_Ptr, segment.Offset);
                 }
@@ -65,13 +65,13 @@ namespace ENet.Managed
                 if (index < 0) return false;
 
                 var segment = m_TakenSegments[index];
-                m_TakenSegments.FastRemoveAt(index);
+                m_TakenSegments.OrderlessRemoveAt(index);
 
                 index = m_Segments.FindIndex(p => segment.Offset + segment.Count == p.Offset);
                 if (0 <= index)
                 {
                     segment.Count += m_Segments[index].Count;
-                    m_Segments.FastRemoveAt(index);
+                    m_Segments.OrderlessRemoveAt(index);
                 }
 
                 index = m_Segments.FindIndex(p => p.Offset + p.Count == segment.Offset);
@@ -79,7 +79,7 @@ namespace ENet.Managed
                 {
                     segment.Count += m_Segments[index].Count;
                     segment.Offset = m_Segments[index].Offset;
-                    m_Segments.FastRemoveAt(index);
+                    m_Segments.OrderlessRemoveAt(index);
                 }
 
                 m_Segments.Add(segment);
@@ -130,7 +130,7 @@ namespace ENet.Managed
 
             lock (m_LargeAllocations)
             {
-                if (m_LargeAllocations.FastRemove(ptr)) goto free;
+                if (m_LargeAllocations.OrderlessRemove(ptr)) goto free;
             }
 
             lock (m_Chunks)
@@ -145,7 +145,7 @@ namespace ENet.Managed
             Marshal.FreeHGlobal(ptr);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             if (Disposed) return;
             Disposed = true;

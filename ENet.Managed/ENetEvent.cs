@@ -1,25 +1,21 @@
 ﻿namespace ENet.Managed
 {
-    public abstract class ENetEvent
-    {
+    public abstract class ENetEvent { }
+    public sealed class ENetNoneEventArgs : ENetEvent { }
 
-    }
-
-    public class ENetNoneEventArgs : ENetEvent { }
-
-    public class ENetConnectEventArgs : ENetEvent
+    public sealed class ENetConnectEventArgs : ENetEvent
     {
         public ENetPeer Peer { get; set; }
         public uint Data { get; set; }
     }
 
-    public class ENetDisconnectEventArgs : ENetEvent
+    public sealed class ENetDisconnectEventArgs : ENetEvent
     {
         public ENetPeer Peer { get; set; }
         public uint Data { get; set; }
     }
 
-    public class ENetReceiveEventArgs : ENetEvent
+    public sealed class ENetReceiveEventArgs : ENetEvent
     {
         public ENetPeer Peer { get; set; }
         public ENetPacket Packet { get; set; }

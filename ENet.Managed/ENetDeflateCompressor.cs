@@ -42,8 +42,7 @@ namespace ENet.Managed
             var memory = m_Deflate.BaseStream as MemoryStream;
             m_Deflate.Dispose();
             m_Deflate = null;
-            var result = memory.ToArray();
-            return result;
+            return memory.ToArray();
         }
 
         public override byte[] Decompress(byte[] input, int outputLimit)
@@ -59,8 +58,11 @@ namespace ENet.Managed
             return result;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
+            if (!disposing)
+                return;
+
             if (m_Deflate != null)
             {
                 m_Deflate.Dispose();

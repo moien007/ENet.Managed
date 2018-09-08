@@ -8,15 +8,15 @@ namespace ENet.Managed
 {
     internal static class ExtensionMethods
     {
-        public static bool FastRemove<T>(this List<T> list, T item)
+        public static bool OrderlessRemove<T>(this List<T> list, T item)
         {
             var index = list.FindIndex(p => p.Equals(item));
             if (index < 0) return false;
-            list.FastRemoveAt(index);
+            list.OrderlessRemoveAt(index);
             return true;
         }
 
-        public static void FastRemoveAt<T>(this List<T> list, int index)
+        public static void OrderlessRemoveAt<T>(this List<T> list, int index)
         {
             if (list.Count > 2)
             {

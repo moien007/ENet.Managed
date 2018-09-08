@@ -6,19 +6,17 @@ namespace ENet.Managed
 {
     public unsafe static class ManagedENet
     {
-        static bool _Started;
-        static ENetAllocator _Allocator;
         static Native.ENetMemoryAllocCallback MemAllocDelegate;
         static Native.ENetMemoryFreeCallback MemFreeDelegate;
         static Native.ENetNoMemoryCallback NoMemoryDelegate;
 
-        public static bool Started => _Started;
-        public static ENetAllocator Allocator => _Allocator;
+        public static bool Started { get; private set; }
+        public static ENetAllocator Allocator { get; private set; }
         public static Version LinkedVersion { get; private set; }
 
         static ManagedENet()
         {
-            _Started = false;
+            Started = false;
             MemAllocDelegate = MemAllocCallback;
             MemFreeDelegate = MemFreeCallback;
             NoMemoryDelegate = NoMemoryCallback;
@@ -26,10 +24,10 @@ namespace ENet.Managed
 
         public static void Startup(ENetAllocator allocator = null)
         {
-            if (_Started) return;
-            _Started = true;
+            if (Started) return;
+            Started = true;
 
-            _Allocator = (allocator == null) ? new ENetManagedAllocator() : allocator;
+            Allocator = (allocator == null) ? new ENetManagedAllocator() : allocator;
 
             LibENet.Load();
 
@@ -49,18 +47,18 @@ namespace ENet.Managed
 
         public static void Shutdown(bool delete)
         {
-            if (!_Started) return;
-            _Started = false;
+            if (!Started) return;
+            Started = false;
 
             LibENet.Unload();
             if (delete) LibENet.TryDelete();
 
-            _Allocator.Dispose();
-            _Allocator = null;
+            Allocator.Dispose();
+            Allocator = null;
         }
 
         private static void NoMemoryCallback() => throw new OutOfMemoryException("ENet out of memory");
-        private static IntPtr MemAllocCallback(UIntPtr size) => _Allocator.Alloc((int)size.ToUInt32());
-        private static void MemFreeCallback(IntPtr memory) => _Allocator.Free(memory);
+        private static IntPtr MemAllocCallback(UIntPtr size) => Allocator.Alloc((int)size.ToUInt32());
+        private static void MemFreeCallback(IntPtr memory) => Allocator.Free(memory);
     }
 }

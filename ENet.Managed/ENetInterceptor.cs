@@ -11,21 +11,25 @@ namespace ENet.Managed
         Error = -1,
     }
 
-    public enum ENetInterceptionMethod
-    {
-        Managed,
-        Unmanaged,
-    }
-
     public unsafe abstract class ENetInterceptor : IDisposable
     {
-        public ENetHost Host { get; internal set; }
-        public ENetInterceptionMethod Method { get; private set; }
+        public enum InterceptionMethod
+        {
+            Managed,
+            Unmanaged,
+        }
 
-        protected ENetInterceptor(ENetInterceptionMethod method)
+        public ENetHost Host { get; internal set; }
+        public InterceptionMethod Method { get; private set; }
+
+        protected ENetInterceptor(InterceptionMethod method)
         {
             Method = method;
         }
+
+        ~ENetInterceptor() => Dispose(false);
+
+        protected virtual void Dispose(bool disposing) { }
 
         public virtual ENetInterceptionResult Intercept(IPEndPoint endPoint, ref byte[] buffer, out ENetEvent e)
         {
@@ -37,6 +41,10 @@ namespace ENet.Managed
             throw new NotImplementedException();
         }
 
-        public abstract void Dispose();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

@@ -2,26 +2,34 @@
 
 namespace ENet.Managed
 {
-    public enum ENetChecksumMethod
-    {
-        Array,
-        Pointer,
-    }
-
     public unsafe abstract class ENetChecksum : IDisposable
     {
-        public ENetHost Host { get; internal set; }
-        public ENetChecksumMethod Method { get; private set; }
+        public enum ChecksumMethod
+        {
+            Array,
+            Pointer,
+        }
 
-        protected ENetChecksum(ENetChecksumMethod method)
+        public ENetHost Host { get; internal set; }
+        public ChecksumMethod Method { get; private set; }
+
+        protected ENetChecksum(ChecksumMethod method)
         {
             Method = method;
         }
+
+        ~ENetChecksum() => Dispose(false);
 
         public abstract void Begin();
         public virtual void Sum(byte[] buffer) { throw new NotImplementedException(); }
         public virtual void Sum(byte* p, int count) { throw new NotImplementedException(); }
         public abstract uint End();
-        public abstract void Dispose();
+        protected virtual void Dispose(bool disposing) { }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

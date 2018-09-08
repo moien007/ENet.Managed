@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Net;
+using ENet.Managed.Platforms;
 using Native = ENet.Managed.Structures;
 
 namespace ENet.Managed
@@ -14,20 +15,15 @@ namespace ENet.Managed
     {
         public const int MaximumPeers = LibENet.ENET_PROTOCOL_MAXIMUM_PEER_ID;
 
-        private ENetCompressor m_Compressor = null;
-        private ENetChecksum m_Checksum = null;
-        private ENetInterceptor m_Interceptor = null;
-
         private Thread m_ServiceThread = null;
         private ManualResetEvent m_ServiceThreadStopEvent = null;
         private CancellationTokenSource m_ServiceThreadStopToken = null;
 
-        private Native.ENetChecksumCallback m_ChecksumDelegate;
+        private Native.ENetChecksumCallback ChecksumDelegate;
         private Native.ENetInterceptCallback m_InterceptDelegate;
         private IntPtr* m_pInterceptCallback;
         private IntPtr* m_pChecksumCallback;
 
-        private IntPtr m_Pointer;
         private uint* m_pTotalSentData;
         private uint* m_pTotalSentPackets;
         private uint* m_pTotalReceivedData;
@@ -39,11 +35,12 @@ namespace ENet.Managed
 
         internal List<ENetPeer> m_Peers = new List<ENetPeer>();
 
-        public IntPtr Pointer => m_Pointer;
+        public IntPtr Pointer { get; private set; }
+        public ENetCompressor Compressor { get; private set; }
+        public ENetChecksum Checksum { get; private set; }
+        public ENetInterceptor Interceptor { get; private set; }
         public bool Disposed => Pointer == IntPtr.Zero;
-        public ENetCompressor Compressor =>  m_Compressor;
-        public ENetChecksum Checksum => m_Checksum;
-        public ENetInterceptor Interceptor => m_Interceptor;
+
         public long TotalSentData => *m_pTotalSentData; 
         public long TotalSentPackets => *m_pTotalSentPackets;
         public long TotalReceivedData => *m_pTotalReceivedData;
@@ -68,21 +65,21 @@ namespace ENet.Managed
 
             var enetAddress = Native.ENetAddress.FromEndPoint(address);
 
-            m_Pointer = LibENet.HostCreate(&enetAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
-            if (m_Pointer == IntPtr.Zero) throw new Exception("Failed to create ENet host.");
+            Pointer = LibENet.HostCreate(&enetAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
+            if (Pointer == IntPtr.Zero) throw new Exception("Failed to create ENet host.");
 
-            m_pInterceptCallback = (IntPtr*)IntPtr.Add(m_Pointer, Native.ENetHost.InterceptOffset);
-            m_pChecksumCallback = (IntPtr*)IntPtr.Add(m_Pointer, Native.ENetHost.ChecksumOffset);
-            m_pTotalSentData = (uint*)IntPtr.Add(m_Pointer, Native.ENetHost.TotalSentDataOffset);
-            m_pTotalSentPackets = (uint*)IntPtr.Add(m_Pointer, Native.ENetHost.TotalSentPacketsOffset);
-            m_pTotalReceivedData = (uint*)IntPtr.Add(m_Pointer, Native.ENetHost.TotalReceivedDataOffset);
-            m_pTotalReceivedPackets = (uint*)IntPtr.Add(m_Pointer, Native.ENetHost.TotalReceivedPacketsOffset);
-            m_pReceivedAddress = (Native.ENetAddress*)IntPtr.Add(m_Pointer, Native.ENetHost.ReceivedAddressOffset);
-            m_pReceivedData = (IntPtr*)IntPtr.Add(m_Pointer, Native.ENetHost.ReceivedDataOffset);
-            m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(m_Pointer, Native.ENetHost.ReceivedDataLengthOffset);
-            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(m_Pointer, Native.ENetHost.ConnectedPeersOffset);
+            m_pInterceptCallback = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.InterceptOffset);
+            m_pChecksumCallback = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ChecksumOffset);
+            m_pTotalSentData = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalSentDataOffset);
+            m_pTotalSentPackets = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalSentPacketsOffset);
+            m_pTotalReceivedData = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalReceivedDataOffset);
+            m_pTotalReceivedPackets = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalReceivedPacketsOffset);
+            m_pReceivedAddress = (Native.ENetAddress*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedAddressOffset);
+            m_pReceivedData = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedDataOffset);
+            m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedDataLengthOffset);
+            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ConnectedPeersOffset);
 
-            m_ChecksumDelegate = new Native.ENetChecksumCallback(ChecksumCallback);
+            ChecksumDelegate = new Native.ENetChecksumCallback(ChecksumCallback);
             m_InterceptDelegate = new Native.ENetInterceptCallback(InterceptCallback);
         }
 
@@ -92,7 +89,7 @@ namespace ENet.Managed
                 throw new ArgumentOutOfRangeException("channels");
 
             Native.ENetAddress address = Native.ENetAddress.FromEndPoint(endPoint);
-            var native = LibENet.HostConnect(m_Pointer, &address, (UIntPtr)channels, data);
+            var native = LibENet.HostConnect(Pointer, &address, (UIntPtr)channels, data);
 
             if (((IntPtr)native) == IntPtr.Zero)
                 throw new Exception("Failed to initiate connection.");
@@ -109,7 +106,7 @@ namespace ENet.Managed
                 packet = LibENet.PacketCreate((IntPtr)p, (UIntPtr)buffer.Length, flags & ~ENetPacketFlags.NoAllocate);
             }
 
-            LibENet.HostBroadcast(m_Pointer, channel, packet);
+            LibENet.HostBroadcast(Pointer, channel, packet);
         }
 
 
@@ -159,19 +156,19 @@ namespace ENet.Managed
             if (outgoingBandwidth < uint.MinValue || outgoingBandwidth > uint.MaxValue)
                 throw new ArgumentOutOfRangeException("outgoingBandwidth");
 
-            LibENet.HostBandwidthLimit(m_Pointer, (uint)incomingBandwidth, (uint)outgoingBandwidth);
+            LibENet.HostBandwidthLimit(Pointer, (uint)incomingBandwidth, (uint)outgoingBandwidth);
         }
 
-        public void ChannelLimit(byte channels) => LibENet.HostChannelLimit(m_Pointer, (UIntPtr)channels);
+        public void ChannelLimit(byte channels) => LibENet.HostChannelLimit(Pointer, (UIntPtr)channels);
 
         public ENetEvent CheckEvents()
         {
             var native = new Native.ENetEvent();
-            LibENet.HostCheckEvents(m_Pointer, &native);
+            LibENet.HostCheckEvents(Pointer, &native);
             return NativeToManagedEvent(native);
         }
 
-        public void Flush() => LibENet.HostFlush(m_Pointer);
+        public void Flush() => LibENet.HostFlush(Pointer);
 
         public void Service() => Service(1);
         public void Service(uint timeout)
@@ -208,7 +205,7 @@ namespace ENet.Managed
             var native = new Native.ENetEvent();
             int result;
 
-            result = LibENet.HostService(m_Pointer, &native, timeout);
+            result = LibENet.HostService(Pointer, &native, timeout);
 
             if (result < 0)
                 throw new Exception("Service failure.");
@@ -232,26 +229,27 @@ namespace ENet.Managed
                 throw new Exception("Compressor is already in use by another host.");
             }
 
+            compressor.Host = this;
             Native.ENetCompressor native = new Native.ENetCompressor();
             native.Context = compressor.AllocHandle();
             native.Compress = Marshal.GetFunctionPointerForDelegate(ENetCompressor.CompressDelegate);
             native.Decompress = Marshal.GetFunctionPointerForDelegate(ENetCompressor.DecompressDelegate);
             native.Destroy = Marshal.GetFunctionPointerForDelegate(ENetCompressor.DestroyDelegate);
-            LibENet.HostCompress(m_Pointer, &native);
-            m_Compressor = compressor;
+            LibENet.HostCompress(Pointer, &native);
+            Compressor = compressor;
         }
 
         public void CompressWithRangeCoder()
         {
-            if (LibENet.HostCompressWithRangeCoder(m_Pointer) != 0)
+            if (LibENet.HostCompressWithRangeCoder(Pointer) != 0)
                 throw new Exception("Failed to set compressor to RangeCoder.");
-            m_Compressor = null;
+            Compressor = null;
         }
 
         public void DoNotCompress()
         {
-            LibENet.HostCompress(m_Pointer, (Native.ENetCompressor*)IntPtr.Zero);
-            m_Compressor = null;
+            LibENet.HostCompress(Pointer, (Native.ENetCompressor*)IntPtr.Zero);
+            Compressor = null;
         }
 
         public void ChecksumWith(ENetChecksum checksum)
@@ -261,66 +259,66 @@ namespace ENet.Managed
                 throw new Exception("Checksum is already in-use by another host.");
             }
 
-            if (m_Checksum != null)
+            if (Checksum != null)
             {
-                m_Checksum.Dispose();
-                m_Checksum = null;
+                Checksum.Dispose();
+                Checksum = null;
             }
 
-            m_Checksum = checksum;
-            *m_pChecksumCallback = Marshal.GetFunctionPointerForDelegate(m_ChecksumDelegate);
+            Checksum = checksum;
+            *m_pChecksumCallback = Marshal.GetFunctionPointerForDelegate(ChecksumDelegate);
         }
 
         private uint ChecksumCallback(Native.ENetBuffer* buffers, UIntPtr buffersCount)
         {
-            m_Checksum.Begin();
+            Checksum.Begin();
 
             for (int i = 0; i < buffersCount.ToUInt32(); i++)
             {
                 var buffer = buffers[i];
 
-                if (m_Checksum.Method == ENetChecksumMethod.Pointer)
+                if (Checksum.Method == ENetChecksum.ChecksumMethod.Pointer)
                 {
-                    m_Checksum.Sum((byte*)buffer.Data, (int)buffer.DataLength);
+                    Checksum.Sum((byte*)buffer.Data, (int)buffer.DataLength);
                     continue;
                 }
 
-                if (m_Checksum.Method == ENetChecksumMethod.Array)
+                if (Checksum.Method == ENetChecksum.ChecksumMethod.Array)
                 {
                     byte[] input = new byte[buffer.DataLength.ToUInt32()];
 
                     fixed (byte* dest = input)
                     {
-                        ENetUtils.MemoryCopy((IntPtr)dest, buffer.Data, buffer.DataLength);
+                        Platform.Current.MemoryCopy((IntPtr)dest, buffer.Data, buffer.DataLength);
                     }
 
-                    m_Checksum.Sum(input);
+                    Checksum.Sum(input);
                     continue;
                 }
 
                 throw new NotImplementedException();
             }
 
-            return m_Checksum.End();
+            return Checksum.End();
         }
 
         public void ChecksumWithCRC32()
         {
-            if (m_Checksum != null)
+            if (Checksum != null)
             {
-                m_Checksum.Dispose();
-                m_Checksum = null;
+                Checksum.Dispose();
+                Checksum = null;
             }
 
-            *m_pChecksumCallback = LibENet._platform.GetPlatformProcAddress(LibENet.DllHandle, "enet_crc32");
+            *m_pChecksumCallback = Platform.Current.GetProcAddress(LibENet.DllHandle, "enet_crc32");
         }
 
         public void DoNotChecksum()
         {
-            if (m_Checksum != null)
+            if (Checksum != null)
             {
-                m_Checksum.Dispose();
-                m_Checksum = null;
+                Checksum.Dispose();
+                Checksum = null;
             }
 
             *m_pChecksumCallback = IntPtr.Zero;
@@ -331,8 +329,8 @@ namespace ENet.Managed
         {
             if (Interceptor != null)
             {
-                m_Interceptor.Dispose();
-                m_Interceptor = null;
+                Interceptor.Dispose();
+                Interceptor = null;
             }
 
             if (interceptor.Host != null && interceptor.Host != this)
@@ -340,29 +338,29 @@ namespace ENet.Managed
                 throw new Exception("Interceptor is already in-use by another host.");
             }
 
-            m_Interceptor = interceptor;
+            Interceptor = interceptor;
             *m_pInterceptCallback = Marshal.GetFunctionPointerForDelegate(m_InterceptDelegate);
         }
 
         private ENetInterceptionResult InterceptCallback(IntPtr host, Native.ENetEvent* e)
         {
-            if (m_Interceptor.Method == ENetInterceptionMethod.Unmanaged)
+            if (Interceptor.Method == ENetInterceptor.InterceptionMethod.Unmanaged)
             {
-                return m_Interceptor.Intercept(m_pReceivedAddress, (byte**)m_pReceivedData, m_pReceivedDataLength, e);
+                return Interceptor.Intercept(m_pReceivedAddress, (byte**)m_pReceivedData, m_pReceivedDataLength, e);
             }
 
-            if (m_Interceptor.Method == ENetInterceptionMethod.Managed)
+            if (Interceptor.Method == ENetInterceptor.InterceptionMethod.Managed)
             {
                 IPEndPoint endPoint = (*m_pReceivedAddress).ToEndPoint();
                 byte[] buffer = new byte[(*m_pReceivedDataLength).ToUInt32()];
 
                 fixed (byte* dest = buffer)
                 {
-                    LibENet._platform.MemoryCopy((IntPtr)dest, *m_pReceivedData, *m_pReceivedDataLength);
+                    Platform.Current.MemoryCopy((IntPtr)dest, *m_pReceivedData, *m_pReceivedDataLength);
                 }
 
                 byte[] bufferRef = buffer;
-                var result = m_Interceptor.Intercept(endPoint, ref bufferRef, out ENetEvent @event);
+                var result = Interceptor.Intercept(endPoint, ref bufferRef, out ENetEvent @event);
 
                 if (result == ENetInterceptionResult.Error)
                     return result;
@@ -371,7 +369,7 @@ namespace ENet.Managed
                 {
                     fixed (byte* src = bufferRef)
                     {
-                        ENetUtils.MemoryCopy((IntPtr)src, *m_pReceivedData, *m_pReceivedDataLength);
+                        Platform.Current.MemoryCopy((IntPtr)src, *m_pReceivedData, *m_pReceivedDataLength);
                     }
                 }
                 else if (bufferRef != null)
@@ -383,7 +381,7 @@ namespace ENet.Managed
 
                     fixed (byte* src = bufferRef)
                     {
-                        ENetUtils.MemoryCopy((IntPtr)src, bufferPtr, (UIntPtr)bufferRef.Length);
+                        Platform.Current.MemoryCopy((IntPtr)src, bufferPtr, (UIntPtr)bufferRef.Length);
                     }
                 }
 
@@ -428,15 +426,15 @@ namespace ENet.Managed
                 }
             }
 
-            throw new NotImplementedException(m_Interceptor.Method.ToString());
+            throw new NotImplementedException(Interceptor.Method.ToString());
         }
 
         public void DoNotIntercept()
         {
             if (Interceptor != null)
             {
-                m_Interceptor.Dispose();
-                m_Interceptor = null;
+                Interceptor.Dispose();
+                Interceptor = null;
             }
 
             *m_pInterceptCallback = IntPtr.Zero;
@@ -444,31 +442,31 @@ namespace ENet.Managed
 
         public void Dispose()
         {
-            if (m_Pointer == IntPtr.Zero) return;
+            if (Pointer == IntPtr.Zero) return;
 
             try { StopServiceThread(); } catch { }
 
             if (Compressor != null)
             {
-                m_Compressor.Dispose();
-                m_Compressor = null;
+                Compressor.Dispose();
+                Compressor = null;
             }
 
             if (Checksum != null)
             {
-                m_Checksum.Dispose();
-                m_Checksum = null;
+                Checksum.Dispose();
+                Checksum = null;
             }
 
             if (Interceptor != null)
             {
-                m_Interceptor.Dispose();
-                m_Interceptor = null;
+                Interceptor.Dispose();
+                Interceptor = null;
             }
 
             m_Peers.ForEach(p => p.FreeHandle());
-            LibENet.HostDestroy(m_Pointer);
-            m_Pointer = IntPtr.Zero;
+            LibENet.HostDestroy(Pointer);
+            Pointer = IntPtr.Zero;
         }
 
         public void StartServiceThread()

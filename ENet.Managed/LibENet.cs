@@ -2,12 +2,13 @@
 using System.Runtime.InteropServices;
 using System.IO;
 using Native = ENet.Managed.Structures;
+using ENet.Managed.Platforms;
 
 namespace ENet.Managed
 {
     public static unsafe class LibENet
     {
-        internal const CallingConvention ENetCallingConvention = CallingConvention.Cdecl;
+        public const CallingConvention ENetCallingConvention = CallingConvention.Cdecl;
 
         public const int ENET_PROTOCOL_MAXIMUM_PACKET_COMMANDS = 32;
         public const int ENET_PEER_UNSEQUENCED_WINDOW_SIZE = 1024;
@@ -139,14 +140,13 @@ namespace ENet.Managed
         public delegate void ENetPeerTimeoutDelegate(Native.ENetPeer* peer, uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum);
         public static ENetPeerTimeoutDelegate PeerTimeout { get; private set; }
 
-        internal static Platform _platform { get; private set; } = Platform.GetPlatformDefaultLoader();
         public static string DllPath { get; set; }
         public static IntPtr DllHandle { get; private set; } = IntPtr.Zero;
         public static bool IsLoaded { get; private set; } = false;
 
         static LibENet()
         {
-            var dllName = _platform.GetLibraryName();
+            var dllName = Platform.Current.GetENetBinaryName();
             DllPath = Path.Combine(Path.GetTempPath(), "enet_managed_resource", dllName);
         }
 
@@ -168,7 +168,7 @@ namespace ENet.Managed
         {
             if (!IsLoaded) return;
             Deinitialize();
-            _platform.FreePlatformLibrary(DllHandle);
+            Platform.Current.FreeLibrary(DllHandle);
             DllHandle = IntPtr.Zero;
             IsLoaded = false;
         }
@@ -233,7 +233,7 @@ namespace ENet.Managed
         static void LoadDll(bool overwrite)
         {
             if (DllHandle != IntPtr.Zero)
-                _platform.FreePlatformLibrary(DllHandle);
+                Platform.Current.FreeLibrary(DllHandle);
 
             var dllBytes = Environment.Is64BitProcess ?
                            ENetBinariesResource.libenet_64 : 
@@ -245,7 +245,7 @@ namespace ENet.Managed
                 File.WriteAllBytes(DllPath, dllBytes);
             }
 
-            DllHandle = _platform.LoadPlatformLibrary(DllPath);
+            DllHandle = Platform.Current.LoadLibrary(DllPath);
             if (DllHandle == IntPtr.Zero) throw new Exception("Failed to load ENet library.");
         }
 
@@ -254,7 +254,7 @@ namespace ENet.Managed
             if (DllHandle == IntPtr.Zero)
                 throw new Exception("ENet library wasn't loaded.");
         
-            IntPtr address = _platform.GetPlatformProcAddress(DllHandle, procName);
+            IntPtr address = Platform.Current.GetProcAddress(DllHandle, procName);
 
             if (address == IntPtr.Zero)
             {

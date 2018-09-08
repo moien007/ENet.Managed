@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Text;
+using ENet.Managed.Platforms;
 
 namespace ENet.Managed
 {
     public unsafe static class ENetUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MemoryCopy(IntPtr dest, IntPtr src, UIntPtr count)
-        {
-            LibENet._platform.MemoryCopy(dest, src, count);
-        }
+        public static void MemoryCopy(byte[] dest, byte[] src, int count) => MemoryCopy(dest, 0, src, 0, count);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MemoryCopy(byte[] dest, int destOffset, byte[] src, int srcOffset, int count)
@@ -18,21 +15,22 @@ namespace ENet.Managed
             fixed (byte* pDest = dest)
             fixed (byte* pSrc = src)
             {
-                MemoryCopy((IntPtr)(pDest + destOffset), (IntPtr)(pSrc + srcOffset), (UIntPtr)count);
+                Platform.Current.MemoryCopy((IntPtr)(pDest + destOffset), (IntPtr)(pSrc + srcOffset), (UIntPtr)count);
             }
-        }
-
-        public static void MemoryCopy(byte[] dest, byte[] src, int count)
-        {
-            MemoryCopy(dest, 0, src, 0, count);
         }
 
         public static string FormatBytes(long count)
         {
-            var sb = new StringBuilder(40);
-            if (Win32.StrFormatKBSize(count, sb, (uint)sb.Capacity) == IntPtr.Zero)
-                throw new Exception("Failed to format bytes to string.");
-            return sb.ToString();
+            if (count < 1000)
+            {
+                return string.Format("{0}b", count);
+            }
+            else if (count < 1e+9)
+            {
+                return string.Format("{0}mb", count / 1000000d);
+            }
+
+            return string.Format("{0}gb", count / 1e+9);
         }
     }
 }

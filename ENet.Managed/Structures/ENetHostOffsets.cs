@@ -2,7 +2,7 @@
 
 namespace ENet.Managed.Structures
 {
-    public static class ENetHost
+    public static class ENetHostOffset
     {
         public static readonly int ChecksumOffset = Environment.Is64BitProcess ? 2704 : 2136;
         public static readonly int InterceptOffset = Environment.Is64BitProcess ? 10976 : 10380;
