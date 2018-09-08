@@ -312,7 +312,7 @@ namespace ENet.Managed
                 m_Checksum = null;
             }
 
-            *m_pChecksumCallback = Win32.GetProcAddress(LibENet.DllHandle, "enet_crc32");
+            *m_pChecksumCallback = LibENet._platform.GetPlatformProcAddress(LibENet.DllHandle, "enet_crc32");
         }
 
         public void DoNotChecksum()
@@ -358,7 +358,7 @@ namespace ENet.Managed
 
                 fixed (byte* dest = buffer)
                 {
-                    Win32.MemoryCopy((IntPtr)dest, *m_pReceivedData, *m_pReceivedDataLength);
+                    LibENet._platform.MemoryCopy((IntPtr)dest, *m_pReceivedData, *m_pReceivedDataLength);
                 }
 
                 byte[] bufferRef = buffer;

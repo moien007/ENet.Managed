@@ -19,7 +19,7 @@ namespace ENet.Managed {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ENetBinariesResource {
@@ -76,6 +76,26 @@ namespace ENet.Managed {
         internal static byte[] libenet_64 {
             get {
                 object obj = ResourceManager.GetObject("libenet_64", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] libenet_X64_so {
+            get {
+                object obj = ResourceManager.GetObject("libenet_X64_so", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] libenet_X86_so {
+            get {
+                object obj = ResourceManager.GetObject("libenet_X86_so", resourceCulture);
                 return ((byte[])(obj));
             }
         }

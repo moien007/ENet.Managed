@@ -9,7 +9,7 @@ namespace ENet.Managed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MemoryCopy(IntPtr dest, IntPtr src, UIntPtr count)
         {
-            Win32.MemoryCopy(dest, src, count);
+            LibENet._platform.MemoryCopy(dest, src, count);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
