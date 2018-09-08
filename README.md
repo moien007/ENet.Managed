@@ -11,6 +11,8 @@ ENet.Managed (or Managed ENet) is managed wrapper for [ENet][enet-repo] written 
 This wrapper <b>only supportes Windows</b> and without a contribution it will not support any other operation systems because Im noob.
 Also <b>I didn't test it with Unity</b> so please tell me if it works with Unity.
 
+(Good News: We are working on .NET Core support. Currently Linux supported, thanks to https://github.com/Nenkai)
+
 #### [Available on NuGet][nuget]
 ---
 ### Quick start (Usage)
