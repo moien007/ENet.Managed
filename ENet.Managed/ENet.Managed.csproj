@@ -59,7 +59,9 @@
     <Compile Include="ENetUtils.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="LibENet.cs" />
+    <Compile Include="Linux.cs" />
     <Compile Include="ManagedENet.cs" />
+    <Compile Include="Platform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Structures\Callbacks.cs" />
     <Compile Include="Structures\ENetAddress.cs" />
@@ -81,11 +83,13 @@
   <ItemGroup>
     <EmbeddedResource Include="ENetBinariesResource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ENetBinariesResource.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\libenet.dll" />
+    <None Include="Resources\libenet_X64.so.7.0.1" />
+    <None Include="Resources\libenet_X86.so.7.0.1" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\libenet64.dll" />

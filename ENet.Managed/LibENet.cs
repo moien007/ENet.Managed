@@ -139,13 +139,14 @@ namespace ENet.Managed
         public delegate void ENetPeerTimeoutDelegate(Native.ENetPeer* peer, uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum);
         public static ENetPeerTimeoutDelegate PeerTimeout { get; private set; }
 
+        internal static Platform _platform { get; private set; } = Platform.GetPlatformDefaultLoader();
         public static string DllPath { get; set; }
         public static IntPtr DllHandle { get; private set; } = IntPtr.Zero;
         public static bool IsLoaded { get; private set; } = false;
 
         static LibENet()
         {
-            var dllName = Environment.Is64BitProcess ? "libenet_X64.dll" : "libenet_X86.dll";
+            var dllName = _platform.GetLibraryName();
             DllPath = Path.Combine(Path.GetTempPath(), "enet_managed_resource", dllName);
         }
 
@@ -167,7 +168,7 @@ namespace ENet.Managed
         {
             if (!IsLoaded) return;
             Deinitialize();
-            Win32.FreeLibrary(DllHandle);
+            _platform.FreePlatformLibrary(DllHandle);
             DllHandle = IntPtr.Zero;
             IsLoaded = false;
         }
@@ -232,7 +233,7 @@ namespace ENet.Managed
         static void LoadDll(bool overwrite)
         {
             if (DllHandle != IntPtr.Zero)
-                Win32.FreeLibrary(DllHandle);
+                _platform.FreePlatformLibrary(DllHandle);
 
             var dllBytes = Environment.Is64BitProcess ?
                            ENetBinariesResource.libenet_64 : 
@@ -244,7 +245,7 @@ namespace ENet.Managed
                 File.WriteAllBytes(DllPath, dllBytes);
             }
 
-            DllHandle = Win32.LoadLibrary(DllPath);
+            DllHandle = _platform.LoadPlatformLibrary(DllPath);
             if (DllHandle == IntPtr.Zero) throw new Exception("Failed to load ENet library.");
         }
 
@@ -253,7 +254,7 @@ namespace ENet.Managed
             if (DllHandle == IntPtr.Zero)
                 throw new Exception("ENet library wasn't loaded.");
         
-            IntPtr address = Win32.GetProcAddress(DllHandle, procName);
+            IntPtr address = _platform.GetPlatformProcAddress(DllHandle, procName);
 
             if (address == IntPtr.Zero)
             {
