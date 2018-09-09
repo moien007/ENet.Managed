@@ -7,7 +7,14 @@ namespace ENet.Managed
     public unsafe static class ENetUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MemoryCopy(byte[] dest, byte[] src, int count) => MemoryCopy(dest, 0, src, 0, count);
+        public static void MemoryCopy(byte[] dest, byte[] src, int count)
+        {
+            fixed (byte* pDest = dest)
+            fixed (byte* pSrc = src)
+            {
+                Platform.Current.MemoryCopy((IntPtr)pDest, (IntPtr)pSrc, (UIntPtr)count);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MemoryCopy(byte[] dest, int destOffset, byte[] src, int srcOffset, int count)

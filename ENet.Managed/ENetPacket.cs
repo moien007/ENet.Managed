@@ -2,6 +2,7 @@
 using System.IO;
 using Native = ENet.Managed.Structures;
 using ENet.Managed.Platforms;
+using System.Text;
 
 namespace ENet.Managed
 {
@@ -42,5 +43,8 @@ namespace ENet.Managed
 
             return new MemoryStream(m_Payload, false);
         }
+
+        public BinaryReader GetBinaryReader(bool copy) => new BinaryReader(GetPayloadStream(copy));
+        public BinaryReader GetBinaryReader(Encoding encoding, bool copy) => new BinaryReader(GetPayloadStream(copy), encoding);
     }
 }

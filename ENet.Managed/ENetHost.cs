@@ -165,7 +165,7 @@ namespace ENet.Managed
         {
             var native = new Native.ENetEvent();
             LibENet.HostCheckEvents(Pointer, &native);
-            return NativeToManagedEvent(native);
+            return NativeToManagedEvent(ref native);
         }
 
         public void Flush() => LibENet.HostFlush(Pointer);
@@ -216,7 +216,7 @@ namespace ENet.Managed
             }
             else
             {
-                e = NativeToManagedEvent(native);
+                e = NativeToManagedEvent(ref native);
             }
 
             return true;
@@ -506,7 +506,7 @@ namespace ENet.Managed
             m_ServiceThreadStopEvent.Set();
         }
 
-        private ENetEvent NativeToManagedEvent(Native.ENetEvent native)
+        private ENetEvent NativeToManagedEvent(ref Native.ENetEvent native)
         {
             switch (native.Type)
             {

@@ -7,7 +7,7 @@ namespace ENet.Managed
 {
     public unsafe class ENetPeer
     {
-        internal GCHandle Handle;
+        internal GCHandle m_Handle;
 
         public ENetHost Host { get; }
         public Native.ENetPeer* Unsafe { get; private set; }
@@ -23,8 +23,8 @@ namespace ENet.Managed
             Host = host;
             host.m_Peers.Add(this);
             Unsafe = native;
-            Handle = GCHandle.Alloc(this, GCHandleType.Normal);
-            Unsafe->Data = GCHandle.ToIntPtr(Handle);
+            m_Handle = GCHandle.Alloc(this, GCHandleType.Normal);
+            Unsafe->Data = GCHandle.ToIntPtr(m_Handle);
         }
 
         public void Disconnect(uint data) => LibENet.PeerDisconnect(Unsafe, data);
@@ -41,15 +41,8 @@ namespace ENet.Managed
             FreeHandle();
         }
 
-        public void Ping()
-        {
-            LibENet.PeerPing(Unsafe);
-        }
-
-        public void PingInterval(uint pingInterval)
-        {
-            LibENet.PeerPingInterval(Unsafe, pingInterval);
-        }
+        public void Ping() => LibENet.PeerPing(Unsafe);
+        public void PingInterval(uint pingInterval) => LibENet.PeerPingInterval(Unsafe, pingInterval);
 
         public void Send(byte[] buffer, Enum channel, ENetPacketFlags flags)
         {
@@ -72,13 +65,13 @@ namespace ENet.Managed
         public bool Receive(out ENetPacket packet)
         {
             byte channel = 0;
-            packet = null;
-            Native.ENetPacket* native;
-
-            native = LibENet.PeerReceive(Unsafe, &channel);
+            Native.ENetPacket* native = LibENet.PeerReceive(Unsafe, &channel);
 
             if (((IntPtr)native) == IntPtr.Zero)
+            {
+                packet = null;
                 return false;
+            }
 
             packet = new ENetPacket(native, channel);
             LibENet.PacketDestroy(native);
@@ -98,19 +91,15 @@ namespace ENet.Managed
 
         internal void FreeHandle()
         {
-            if (Handle == default(GCHandle))
+            if (m_Handle == default(GCHandle))
                 return;
 
             Host.m_Peers.Remove(this);
             Unsafe->Data = IntPtr.Zero;
-            Handle.Free();
-            Handle = default(GCHandle);
+            m_Handle.Free();
+            m_Handle = default(GCHandle);
         }
 
-        internal static ENetPeer FromPtr(IntPtr ptr)
-        {
-            var handle = GCHandle.FromIntPtr(ptr);
-            return (ENetPeer)handle.Target;
-        }
+        internal static ENetPeer FromPtr(IntPtr ptr) => (ENetPeer)GCHandle.FromIntPtr(ptr).Target;
     }
 }

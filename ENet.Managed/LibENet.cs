@@ -187,6 +187,26 @@ namespace ENet.Managed
             IsLoaded = true;
         }
 
+        public static T GetProc<T>(string procName)
+        {
+            return (T)(object)Marshal.GetDelegateForFunctionPointer(GetProc(procName), typeof(T));
+        }
+
+        public static IntPtr GetProc(string procName)
+        {
+            if (DllHandle == IntPtr.Zero)
+                throw new Exception("ENet library wasn't loaded.");
+
+            IntPtr address = Platform.Current.GetProcAddress(DllHandle, procName);
+
+            if (address == IntPtr.Zero)
+            {
+                throw new DllNotFoundException(string.Format("Function {0} didn't found within ENet library.", procName));
+            }
+
+            return address;
+        }
+
         static void Load(bool overwrite)
         {
             LoadDll(overwrite);
@@ -236,7 +256,7 @@ namespace ENet.Managed
                 Platform.Current.FreeLibrary(DllHandle);
 
             var dllBytes = Environment.Is64BitProcess ?
-                           ENetBinariesResource.libenet_64 : 
+                           ENetBinariesResource.libenet_64 :
                            ENetBinariesResource.libenet_32;
 
             if (!File.Exists(DllPath) || overwrite)
@@ -247,21 +267,6 @@ namespace ENet.Managed
 
             DllHandle = Platform.Current.LoadLibrary(DllPath);
             if (DllHandle == IntPtr.Zero) throw new Exception("Failed to load ENet library.");
-        }
-
-        public static T GetProc<T>(string procName)
-        {
-            if (DllHandle == IntPtr.Zero)
-                throw new Exception("ENet library wasn't loaded.");
-        
-            IntPtr address = Platform.Current.GetProcAddress(DllHandle, procName);
-
-            if (address == IntPtr.Zero)
-            {
-                throw new DllNotFoundException(string.Format("Function {0} didn't found within ENet library.", procName));
-            }
-
-            return (T)(object)Marshal.GetDelegateForFunctionPointer(address, typeof(T));
         }
     }
 }
