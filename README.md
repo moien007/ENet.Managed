@@ -1,5 +1,5 @@
 ## ENet.Managed
-I was looking for a reliable UDP implementation, after a lots of searchs i found [ENet][enet-repo].<br>
+I was looking for a reliable UDP implementation, after a lots of searches i found [ENet][enet-repo].<br>
 Unlike other libraries, ENet is lightwight, high perfomance and written in C, take a look at [Benchmarks][benchmark].<br>
 ENet.Managed (or Managed ENet) is managed wrapper for [ENet][enet-repo] written in C# and it tries to:
 * Keep the perfomance same as possible 
