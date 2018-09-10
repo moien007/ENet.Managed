@@ -8,10 +8,6 @@ ENet.Managed (or Managed ENet) is managed wrapper for [ENet][enet-repo] written 
 * Providing managed interface for ENet
 * And more...
 
-This wrapper <b>only supportes Windows</b> and without a contribution it will not support any other operation systems because Im noob.
-Also <b>I didn't test it with Unity</b> so please tell me if it works with Unity.
-
-(Good News: We are working on .NET Core support. Currently Linux supported, thanks to https://github.com/Nenkai)
 
 #### [Available on NuGet][nuget]
 ---
@@ -20,6 +16,7 @@ TODO, for now please take a look at ENetChatSample
 
 ### Features
 * Supports Any CPU
+* Supports Windows and Linux (.NET Core 2.0 and .NET 4.5+)
 * Multicast
 * Custom compression (Not enabled by default, recommended to specify a compressor using <code>CompressWith*</code>)
 * Custom checksum (Not enabled by default, recommended to specify a checksum using <code>ChecksumWith*</code>)
