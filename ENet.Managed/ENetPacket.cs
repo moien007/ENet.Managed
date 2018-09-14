@@ -17,13 +17,13 @@ namespace ENet.Managed
 
         internal ENetPacket(Native.ENetPacket* packet, byte channel)
         {
+            Channel = channel;
             Flags = packet->Flags;
             m_Payload = new byte[packet->DataLength.ToUInt32()];
             fixed (byte* dest = m_Payload)
             {
                 Platform.Current.MemoryCopy((IntPtr)dest, (IntPtr)packet->Data, packet->DataLength);
             }
-            Channel = channel;
         }
 
         public byte[] GetPayloadFinal() => m_Payload;

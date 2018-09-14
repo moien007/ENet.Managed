@@ -195,7 +195,7 @@ namespace ENet.Managed
         public static IntPtr GetProc(string procName)
         {
             if (DllHandle == IntPtr.Zero)
-                throw new Exception("ENet library wasn't loaded.");
+                throw new Exception("ENet library is not loaded.");
 
             IntPtr address = Platform.Current.GetProcAddress(DllHandle, procName);
 

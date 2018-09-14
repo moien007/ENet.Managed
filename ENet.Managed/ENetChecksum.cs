@@ -21,7 +21,7 @@ namespace ENet.Managed
         ~ENetChecksum() => Dispose(false);
 
         public abstract void Begin();
-        public virtual void Sum(byte[] buffer) { throw new NotImplementedException(); }
+        public virtual void Sum(byte[] buffer, int count) { throw new NotImplementedException(); }
         public virtual void Sum(byte* p, int count) { throw new NotImplementedException(); }
         public abstract uint End();
         protected virtual void Dispose(bool disposing) { }

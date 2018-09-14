@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using ENet.Managed.Platforms;
 using Native = ENet.Managed.Structures;
+using ByteArrayPool = System.Buffers.ArrayPool<byte>; 
 
 namespace ENet.Managed
 {
@@ -23,9 +24,9 @@ namespace ENet.Managed
         ~ENetCompressor() => Dispose(false);
 
         public abstract void BeginCompress();
-        public abstract void Compress(byte[] buffer);
+        public abstract void Compress(byte[] buffer, int count);
         public abstract byte[] EndCompress();
-        public abstract byte[] Decompress(byte[] input, int outputLimit);
+        public abstract byte[] Decompress(byte[] input, int count, int outputLimit);
         protected virtual void Dispose(bool disposing) { }
 
         public void Dispose()
@@ -47,25 +48,39 @@ namespace ENet.Managed
             var handle = GCHandle.FromIntPtr(context);
             var compressor = handle.Target as ENetCompressor;
 
-            byte[] input;
+            byte[] input = null;
 
             compressor.BeginCompress();
 
             for (int i = 0; i < inBufferCount.ToUInt32(); i++)
             {
                 var inBuffer = inBuffers[i];
-                input = new byte[inBuffer.DataLength.ToUInt32()];
-                
+                var count = (int)inBuffer.DataLength.ToUInt32();
+
+                if (input == null)
+                {
+                    input = ByteArrayPool.Shared.Rent(count);
+                }
+                else if (input.Length < count)
+                {
+                    ByteArrayPool.Shared.Return(input);
+                    input = ByteArrayPool.Shared.Rent(count);
+                }
+
                 fixed (byte* dest = input)
                 {
                     Platform.Current.MemoryCopy((IntPtr)dest, inBuffer.Data, inBuffer.DataLength);
                 }
 
-                compressor.Compress(input);
+                compressor.Compress(input, count);
+            }
+
+            if (input != null)
+            {
+                ByteArrayPool.Shared.Return(input);
             }
 
             var result = compressor.EndCompress();
-
             if (result.Length > outLimit.ToUInt32())
                 return UIntPtr.Zero;
 
@@ -84,26 +99,26 @@ namespace ENet.Managed
             if (context == IntPtr.Zero || inLimit == UIntPtr.Zero)
                 return UIntPtr.Zero;
 
-            var handle = GCHandle.FromIntPtr(context);
-            var compressor = handle.Target as ENetCompressor;
-            var input = new byte[inLimit.ToUInt32()];
+            var compressor = GCHandle.FromIntPtr(context).Target as ENetCompressor;
+            var count = (int)inLimit.ToUInt32();
+            var input = ByteArrayPool.Shared.Rent(count);
 
             fixed (byte* dest = input)
             {
                 Platform.Current.MemoryCopy((IntPtr)dest, inData, inLimit);
             }
 
-            var output = compressor.Decompress(input, (int)outLimit);
+            var output = compressor.Decompress(input, count, (int)outLimit);
             if (output.Length > outLimit.ToUInt32())
                 return UIntPtr.Zero;
 
-            var outputLen = (UIntPtr)output.Length;
+            ByteArrayPool.Shared.Return(input);
 
+            var outputLen = (UIntPtr)output.Length;
             fixed (byte* src = output)
             {
                 Platform.Current.MemoryCopy(outData, (IntPtr)src, outputLen);
             }
-
             return outputLen;
         }
 
