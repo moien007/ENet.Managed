@@ -6,7 +6,7 @@
     <RepositoryUrl>https://github.com/moien007/ENet.Managed</RepositoryUrl>
     <Authors>Moien007</Authors>
     <Description>A managed wrapper for ENet UDP Networking library (Windows, Linux)</Description>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     <PackageProjectUrl>https://github.com/moien007/ENet.Managed</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/moien007/ENet.Managed/blob/master/LICENSE</PackageLicenseUrl>
     <PackageReleaseNotes>- Using ArrayPool for less allocation
