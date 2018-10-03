@@ -255,18 +255,15 @@ namespace ENet.Managed
             if (DllHandle != IntPtr.Zero)
                 Platform.Current.FreeLibrary(DllHandle);
 
-            var dllBytes = Environment.Is64BitProcess ?
-                           ENetBinariesResource.libenet_64 :
-                           ENetBinariesResource.libenet_32;
-
             if (!File.Exists(DllPath) || overwrite)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(DllPath));
-                File.WriteAllBytes(DllPath, dllBytes);
+                File.WriteAllBytes(DllPath, Platform.Current.GetENetBinaryBytes());
             }
 
             DllHandle = Platform.Current.LoadLibrary(DllPath);
-            if (DllHandle == IntPtr.Zero) throw new Exception("Failed to load ENet library.");
+            if (DllHandle == IntPtr.Zero)
+                throw new FileLoadException("Failed to load ENet library.");
         }
     }
 }
