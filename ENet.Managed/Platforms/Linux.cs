@@ -5,13 +5,28 @@ namespace ENet.Managed.Platforms
 {
     public class Linux : Platform
     {
-        public override byte[] GetENetBinaryBytes() => Environment.Is64BitProcess ?
-                                                   ENetBinariesResource.libenet_X64_so :
-                                                   ENetBinariesResource.libenet_X86_so;
+        public override byte[] GetENetBinaryBytes()
+        {
+            if (RuntimeInformation.OSArchitecture == Architecture.Arm)
+                return ENetBinariesResource.libenet_ARM_so;
+            else if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
+                throw new NotSupportedException("Linux ARM64 is not supported yet.");
+            else
+                return Environment.Is64BitProcess ? ENetBinariesResource.libenet_X64_so :
+                    ENetBinariesResource.libenet_X86_so;
+        }
 
-        public override string GetENetBinaryName() => Environment.Is64BitProcess ?
-                                                         "libenet_X64.so.7.0.1" :
-                                                         "libenet_X86.so.7.0.1";
+        public override string GetENetBinaryName()
+        {
+            if (RuntimeInformation.OSArchitecture == Architecture.Arm)
+                return "libenet_ARM.so.7.0.1";
+            else if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
+                throw new NotSupportedException("Linux ARM64 is not supported yet.");
+            else
+                return Environment.Is64BitProcess ? "libenet_X64.so.7.0.1" :
+                    "libenet_X86.so.7.0.1";
+
+        }
 
         public override void FreeLibrary(IntPtr hModule) => LinuxApi.dlclose(hModule);
         public override IntPtr LoadLibrary(string dllPath) => LinuxApi.dlopen(dllPath, LinuxApi.RTLD_NOW);

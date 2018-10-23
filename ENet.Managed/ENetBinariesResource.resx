@@ -124,6 +124,9 @@
   <data name="libenet_64" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\libenet64.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="libenet_ARM_so" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\libenet_ARM.so.7.0.1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="libenet_X64_so" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\libenet_X64.so.7.0.1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
