@@ -99,5 +99,17 @@ namespace ENet.Managed {
                 return ((byte[])(obj));
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] libenet_ARM_so
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("libenet_ARM_so", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
