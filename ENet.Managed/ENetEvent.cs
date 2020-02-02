@@ -1,23 +1,41 @@
-﻿namespace ENet.Managed
+﻿using ENet.Managed.Native;
+using System.Runtime.CompilerServices;
+
+namespace ENet.Managed
 {
-    public abstract class ENetEvent { }
-    public sealed class ENetNoneEventArgs : ENetEvent { }
-
-    public sealed class ENetConnectEventArgs : ENetEvent
+    public readonly struct ENetEvent
     {
-        public ENetPeer Peer { get; set; }
-        public uint Data { get; set; }
-    }
+        public ENetEventType Type { get; }
+        public ENetPeer Peer { get; }
+        public ENetPacket Packet { get; }
+        public uint Data { get; }
+        public byte ChannelId { get; }
 
-    public sealed class ENetDisconnectEventArgs : ENetEvent
-    {
-        public ENetPeer Peer { get; set; }
-        public uint Data { get; set; }
-    }
 
-    public sealed class ENetReceiveEventArgs : ENetEvent
-    {
-        public ENetPeer Peer { get; set; }
-        public ENetPacket Packet { get; set; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ENetEvent(NativeENetEvent native)
+        {
+            Type = native.Type;
+            ChannelId = native.ChannelID;
+            Data = native.Data;
+
+            if (native.Peer != null)
+            {
+                Peer = new ENetPeer(native.Peer);
+            }
+            else
+            {
+                Peer = default;
+            }
+
+            if (native.Packet != null)
+            {
+                Packet = new ENetPacket(native.Packet);
+            }
+            else
+            {
+                Packet = default;
+            }
+        }
     }
 }

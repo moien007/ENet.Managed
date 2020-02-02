@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ENet.Managed.Internal;
 
 namespace ENet.Managed.Platforms
 {
     public abstract class Platform
     {
-        static Platform _CurrentPlatform = null;
+        private static Platform? s_CurrentPlatform;
 
         public static Platform Current
         {
@@ -15,32 +16,38 @@ namespace ENet.Managed.Platforms
 
             get
             {
-                if (_CurrentPlatform != null)
-                    return _CurrentPlatform;
+                if (s_CurrentPlatform != null)
+                    return s_CurrentPlatform;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    _CurrentPlatform = new Win32();
+                    s_CurrentPlatform = new Win32Platform();
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    _CurrentPlatform = new Linux();
+                    s_CurrentPlatform = new LinuxPlatform();
                 }
                 else
                 {
-                    throw new NotSupportedException("Current Operation System is not supported yet.");
+                    ThrowHelper.ThrowCurrentPlatfromIsNotSupportedYet();
                 }
 
-                return _CurrentPlatform;
+                return s_CurrentPlatform!;
+            }
+            set
+            {
+                if (s_CurrentPlatform == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                s_CurrentPlatform = value;
             }
         }
 
         public abstract string GetENetBinaryName();
         public abstract byte[] GetENetBinaryBytes();
-        public abstract IntPtr LoadLibrary(string dllPath);
-        public abstract void FreeLibrary(IntPtr hModule);
-        public abstract IntPtr GetProcAddress(IntPtr handle, string procName);
-        public abstract IntPtr MemoryCopy(IntPtr dest, IntPtr src, UIntPtr count);
+        public abstract IntPtr LoadDynamicLibrary(string dllPath);
+        public abstract void FreeDynamicLibrary(IntPtr hModule);
+        public abstract IntPtr GetDynamicLibraryProcedureAddress(IntPtr handle, string procName);
     }
 }
 

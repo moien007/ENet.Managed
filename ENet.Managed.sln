@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENet.Managed", "ENet.Managed\ENet.Managed.csproj", "{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENet.Managed", "ENet.Managed\ENet.Managed.csproj", "{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENetChatSample", "ENetChatSample\ENetChatSample.csproj", "{FAFEC68F-1B46-497A-B2DF-0AB8500695C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleChatServer", "ExampleChatServer\ExampleChatServer.csproj", "{632A50E8-BB35-472C-882F-7649885C5E64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleChatClient", "ExampleChatClient\ExampleChatClient.csproj", "{41340270-C1CB-420B-B8D1-F394C41D70BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +25,14 @@ Global
 		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FAFEC68F-1B46-497A-B2DF-0AB8500695C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FAFEC68F-1B46-497A-B2DF-0AB8500695C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FAFEC68F-1B46-497A-B2DF-0AB8500695C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FAFEC68F-1B46-497A-B2DF-0AB8500695C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{632A50E8-BB35-472C-882F-7649885C5E64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{632A50E8-BB35-472C-882F-7649885C5E64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{632A50E8-BB35-472C-882F-7649885C5E64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{632A50E8-BB35-472C-882F-7649885C5E64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

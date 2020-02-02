@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace ENet.Managed.Platforms
 {
@@ -19,8 +17,5 @@ namespace ENet.Managed.Platforms
 
         [DllImport(LIBDL)]
         public static extern IntPtr dlsym(IntPtr hModule, string name);
-
-        [DllImport(LIBC, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr memcpy(IntPtr dest, IntPtr src, UIntPtr count);
     }
 }

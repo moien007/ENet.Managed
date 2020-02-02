@@ -1,45 +1,123 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Runtime.InteropServices;
 using System.Net;
-using System.IO.Compression;
-using ENet.Managed.Platforms;
-using Native = ENet.Managed.Structures;
-using ByteArrayPool = System.Buffers.ArrayPool<byte>;
+using System.Runtime.InteropServices;
+using ENet.Managed.Common;
+using ENet.Managed.Native;
+using ENet.Managed.Compressors;
+using ENet.Managed.Internal;
+using ENet.Managed.Checksums;
 
 namespace ENet.Managed
 {
-    public unsafe class ENetHost : IDisposable
+    public sealed unsafe class ENetHost : DisposableBase
     {
-        public const int MaximumPeers = LibENet.ENET_PROTOCOL_MAXIMUM_PEER_ID;
+        public const int MaximumPeers = LibENet.ProtocolMaximumPeerId;
 
-        private Thread m_ServiceThread = null;
-        private ManualResetEvent m_ServiceThreadStopEvent = null;
-        private CancellationTokenSource m_ServiceThreadStopToken = null;
+        // We use this reference to indicate that host is using ENet's builtin CRC32 checksum method
+        private static readonly ENetSentinelChecksum s_Crc32Checksum = new ENetSentinelChecksum();
 
-        private Native.ENetChecksumCallback ChecksumDelegate;
-        private Native.ENetInterceptCallback m_InterceptDelegate;
+        // We use this reference to indicate that host is using ENet's builtin ranger-coder as compressor 
+        private static readonly ENetSentinelCompressor s_RangeCoderCompressor = new ENetSentinelCompressor();
+
+        // Native pointer to ENetHost struct
+        private IntPtr m_Pointer;
+
+        private ENetChecksum? m_Checksum;
+        private ENetCompressor? m_Compressor;
+
+        // we have to hold this callbacks reference to prevent it from being collected by GC
+        private ENetChecksumCallback? m_ChecksumCallback;
+        private ENetCompressCallback? m_CompressorCompressCallback;
+        private ENetDecompressCallback? m_CompressorDecompressCallback;
+        private ENetInterceptCallback? m_InterceptCallback;
+
+        // Unsafe native pointers to fields of actual ENetHost struct
         private IntPtr* m_pInterceptCallback;
         private IntPtr* m_pChecksumCallback;
-
         private uint* m_pTotalSentData;
         private uint* m_pTotalSentPackets;
         private uint* m_pTotalReceivedData;
         private uint* m_pTotalReceivedPackets;
-        private Native.ENetAddress* m_pReceivedAddress;
+        private NativeENetAddress* m_pReceivedAddress;
         private IntPtr* m_pReceivedData;
         private UIntPtr* m_pReceivedDataLength;
         private UIntPtr* m_pConnectedPeers;
 
-        internal List<ENetPeer> m_Peers = new List<ENetPeer>();
+        /// <summary>
+        /// Gets current in-use (custom) compressor
+        /// </summary>
+        public ENetCompressor Compressor
+        {
+            get
+            {
+                if (m_Compressor == null)
+                    ThrowHelper.ThrowENetHostNoCompresserInUse();
 
-        public IntPtr Pointer { get; private set; }
-        public ENetCompressor Compressor { get; private set; }
-        public ENetChecksum Checksum { get; private set; }
-        public ENetInterceptor Interceptor { get; private set; }
-        public bool Disposed => Pointer == IntPtr.Zero;
+                if (m_Compressor == s_RangeCoderCompressor)
+                    ThrowHelper.ThrowENetHostIsUsingRangeCoder();
 
+                return m_Compressor!;
+            }
+        }
+
+        /// <summary>
+        /// Gets current in-use (custom) checksum
+        /// </summary>
+        public ENetChecksum Checksum
+        {
+            get
+            {
+                if (m_Checksum == null)
+                    ThrowHelper.ThrowENetHostNoChecksumInUse();
+
+                if (m_Checksum == s_Crc32Checksum)
+                    ThrowHelper.ThrowENetHostIsUsingCRC32();
+
+                return m_Checksum!;
+            }
+        }
+
+        /// <summary>
+        /// Gets current in-use (custom) intercept callback
+        /// </summary>
+        public ENetInterceptCallback InterceptCallback
+        {
+            get
+            {
+                if (m_InterceptCallback == null)
+                    ThrowHelper.ThrowENetHostIsNotUsingInterceptor();
+
+                return m_InterceptCallback!;
+            }
+        }
+        /// <summary>
+        /// Indicates whether checksum is enabled or not
+        /// </summary>
+        public bool IsUsingChecksum => m_Checksum != null;
+
+        /// <summary>
+        /// Indicates whether ENet's builtin CRC32 checksum is enabled or not
+        /// </summary>
+        public bool IsUsingCRC32Checksum => m_Checksum == s_Crc32Checksum;
+
+        /// <summary>
+        /// Indicates whether compression is enabled or not
+        /// </summary>
+        public bool IsUsingCompressor => m_Compressor != null;
+
+        /// <summary>
+        /// Indicates whether ENet's builtin range-coder compressor is enabled or not
+        /// </summary>
+        public bool IsUsingRangerCoderCompressor => m_Compressor == s_RangeCoderCompressor;
+
+        /// <summary>
+        /// Indicates whether an interceptor is being used or not
+        /// </summary>
+        public bool IsUsingInterceptor => m_InterceptCallback != null;
+
+        /// <summary>
+        /// Total number of bytes sent
+        /// </summary>
         public long TotalSentData
         {
             get
@@ -49,6 +127,9 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Total number of packets sent
+        /// </summary>
         public long TotalSentPackets
         {
             get
@@ -58,6 +139,9 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Total number of received bytes
+        /// </summary>
         public long TotalReceivedData
         {
             get
@@ -67,6 +151,9 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Total number of received packets
+        /// </summary>
         public long TotalReceivedPackets
         {
             get
@@ -76,122 +163,133 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Number of connected peers
+        /// </summary>
         public int ConnectedPeers
         {
             get
             {
                 CheckDispose();
-                return (int)(*m_pConnectedPeers);
+                return unchecked((int)(*m_pConnectedPeers));
             }
         }
 
-        public bool ServiceThreadStarted => (m_ServiceThread != null);
-
-        public event EventHandler<ENetConnectEventArgs> OnConnect;
-
-        public ENetHost(int peers, byte channels) : this(new IPEndPoint(IPAddress.Any, 0), peers, channels) { }
-        public ENetHost(IPEndPoint address, int peers, byte channels) : this(address, peers, channels, 0, 0) { }
-        public ENetHost(IPEndPoint address, int peers, byte channels, long incomingBandwidth, long outgoingBandwidth)
+        /// <summary>
+        /// Instantiates <see cref="ENetHost"/> by creating native ENet host 
+        /// </summary>
+        /// <param name="address">The address at which other peers may connect to this host. If null, then no peers may connect to the host.</param>
+        /// <param name="peers">Maximum number of peers</param>
+        /// <param name="channels">Maximum number of channels (0 = <see cref="MaximumPeers"/>)</param>
+        /// <param name="incomingBandwidth">Maximum incoming bandwidth (0 = unlimited)</param>
+        /// <param name="outgoingBandwidth">Maximum outgoing bandwidth (0 = unlimited)</param>
+        public ENetHost(IPEndPoint? address, int peers, byte channels, long incomingBandwidth = 0, long outgoingBandwidth = 0)
         {
             if (incomingBandwidth < uint.MinValue || incomingBandwidth > uint.MaxValue)
-                throw new ArgumentOutOfRangeException("incomingBandwidth");
+                throw new ArgumentOutOfRangeException(nameof(incomingBandwidth));
 
             if (outgoingBandwidth < uint.MinValue || outgoingBandwidth > uint.MaxValue)
-                throw new ArgumentOutOfRangeException("outgoingBandwidth");
+                throw new ArgumentOutOfRangeException(nameof(outgoingBandwidth));
 
-            if (peers < uint.MinValue || peers > LibENet.ENET_PROTOCOL_MAXIMUM_PEER_ID)
-                throw new ArgumentOutOfRangeException(string.Format("Maximum peers count is {0}", LibENet.ENET_PROTOCOL_MAXIMUM_PEER_ID));
+            if (peers < 0 || peers > MaximumPeers)
+                throw new ArgumentOutOfRangeException(nameof(peers));
 
-            var enetAddress = Native.ENetAddress.FromEndPoint(address);
+            if (address != null)
+            {
+                var nativeAddress = NativeENetAddress.FromIPEndPoint(address);
+                m_Pointer = LibENet.HostCreate(&nativeAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
+            }
+            else
+            {
+                m_Pointer = LibENet.HostCreate(null, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
+            }
 
-            Pointer = LibENet.HostCreate(&enetAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
-            if (Pointer == IntPtr.Zero) throw new Exception("Failed to create ENet host.");
+            if (m_Pointer == IntPtr.Zero)
+                ThrowHelper.ThrowENetCreateHostFailed();
 
-            m_pInterceptCallback = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.InterceptOffset);
-            m_pChecksumCallback = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ChecksumOffset);
-            m_pTotalSentData = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalSentDataOffset);
-            m_pTotalSentPackets = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalSentPacketsOffset);
-            m_pTotalReceivedData = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalReceivedDataOffset);
-            m_pTotalReceivedPackets = (uint*)IntPtr.Add(Pointer, Native.ENetHostOffset.TotalReceivedPacketsOffset);
-            m_pReceivedAddress = (Native.ENetAddress*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedAddressOffset);
-            m_pReceivedData = (IntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedDataOffset);
-            m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ReceivedDataLengthOffset);
-            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(Pointer, Native.ENetHostOffset.ConnectedPeersOffset);
-
-            ChecksumDelegate = new Native.ENetChecksumCallback(ChecksumCallback);
-            m_InterceptDelegate = new Native.ENetInterceptCallback(InterceptCallback);
+            m_pInterceptCallback = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.InterceptOffset);
+            m_pChecksumCallback = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ChecksumOffset);
+            m_pTotalSentData = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalSentDataOffset);
+            m_pTotalSentPackets = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalSentPacketsOffset);
+            m_pTotalReceivedData = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalReceivedDataOffset);
+            m_pTotalReceivedPackets = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalReceivedPacketsOffset);
+            m_pReceivedAddress = (NativeENetAddress*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedAddressOffset);
+            m_pReceivedData = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataOffset);
+            m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataLengthOffset);
+            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ConnectedPeersOffset);
         }
 
+        /// <summary>
+        /// Gets native pointer to ENetHost that could be passed to ENet library functions
+        /// </summary>
+        public IntPtr GetNativePointer()
+        {
+            CheckDispose();
+
+            return m_Pointer;
+        }
+
+        /// <summary>
+        /// Connects specified <see cref="IPEndPoint"/>
+        /// </summary>
+        /// <param name="endPoint">Remote endpoint</param>
+        /// <param name="channels">Maximum number of channels (can't be zero)</param>
+        /// <param name="data">User data supplied to the receiving host</param>
+        /// <returns></returns>
         public ENetPeer Connect(IPEndPoint endPoint, byte channels, uint data)
         {
             CheckDispose();
 
             if (channels < 1)
-                throw new ArgumentOutOfRangeException("channels");
+                throw new ArgumentOutOfRangeException(nameof(channels));
 
-            Native.ENetAddress address = Native.ENetAddress.FromEndPoint(endPoint);
-            var native = LibENet.HostConnect(Pointer, &address, (UIntPtr)channels, data);
+            NativeENetAddress address = NativeENetAddress.FromIPEndPoint(endPoint);
+            var native = LibENet.HostConnect(m_Pointer, &address, unchecked((UIntPtr)channels), data);
 
             if (((IntPtr)native) == IntPtr.Zero)
-                throw new Exception("Failed to initiate connection.");
+                ThrowHelper.ThrowENetConnectFailure();
 
-            return new ENetPeer(this, native);
+            return new ENetPeer(native);
         }
 
-        public void Broadcast(byte[] buffer, Enum channel, ENetPacketFlags flags) => Broadcast(buffer, Convert.ToByte(channel), flags);
-        public void Broadcast(byte[] buffer, byte channel, ENetPacketFlags flags)
+        /// <summary>
+        /// Queues a packet to be sent to all peers associated with the host.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ENetPacketFlags.NoAllocate"/> will be ignored.
+        /// </remarks>
+        public void Broadcast(byte channel, ReadOnlySpan<byte> buffer, ENetPacketFlags flags)
         {
             CheckDispose();
 
-            Native.ENetPacket* packet;
+            NativeENetPacket* packet;
             fixed (byte* p = buffer)
             {
-                packet = LibENet.PacketCreate((IntPtr)p, (UIntPtr)buffer.Length, flags & ~ENetPacketFlags.NoAllocate);
+                packet = LibENet.PacketCreate((IntPtr)p, unchecked((UIntPtr)buffer.Length), flags & ~ENetPacketFlags.NoAllocate);
             }
 
-            LibENet.HostBroadcast(Pointer, channel, packet);
+            LibENet.HostBroadcast(m_Pointer, channel, packet);
         }
 
-
-        public void Multicast(byte[] buffer, Enum channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers) =>
-            Multicast(buffer, Convert.ToByte(channel), flags, peers, null);
-
-        public void Multicast(byte[] buffer, Enum channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers, ENetPeer except) =>
-            Multicast(buffer, Convert.ToByte(channel), flags, peers, except);
-
-        public void Multicast(byte[] buffer, byte channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers) =>
-            Multicast(buffer, channel, flags, peers, null);
-
-        public void Multicast(byte[] buffer, byte channel, ENetPacketFlags flags, IEnumerable<ENetPeer> peers, ENetPeer except)
+        /// <summary>
+        /// Queues a packet to be sent to all peers associated with the host.
+        /// </summary>
+        /// <remarks>
+        /// This method will destroy the packet if its <see cref="ENetPacket.ReferenceCount"/> is zero
+        /// </remarks>
+        public void Broadcast(byte channel, ENetPacket packet)
         {
             CheckDispose();
-            Native.ENetPacket* packet;
 
-            fixed (byte* p = buffer)
-            {
-                packet = LibENet.PacketCreate((IntPtr)p, (UIntPtr)buffer.Length, flags & ~ENetPacketFlags.NoAllocate);
-            }
+            if (packet.IsNull)
+                throw new ArgumentNullException(nameof(packet));
 
-            foreach (var peer in peers)
-            {
-                if (peer == null)
-                    throw new NullReferenceException();
-
-                if (peer.Host != this)
-                    throw new ENetMulticastException("Speicfied peer is not of this host.", peer);
-
-                if (peer == except) continue;
-
-                if (peer.Unsafe->State != ENetPeerState.Connected) continue;
-
-                if (LibENet.PeerSend(peer.Unsafe, channel, packet) != 0)
-                    throw new ENetMulticastException("Failed to send packet to speicfied peer.", peer);
-            }
-
-            if (packet->ReferenceCount.ToUInt32() == 0)
-                LibENet.PacketDestroy(packet);
+            LibENet.HostBroadcast(m_Pointer, channel, packet.GetNativePointer());
         }
 
+        /// <summary>
+        /// Adjusts the bandwidth limits of the host.
+        /// </summary>
         public void BandwidthLimit(long incomingBandwidth, long outgoingBandwidth)
         {
             CheckDispose();
@@ -202,310 +300,253 @@ namespace ENet.Managed
             if (outgoingBandwidth < uint.MinValue || outgoingBandwidth > uint.MaxValue)
                 throw new ArgumentOutOfRangeException("outgoingBandwidth");
 
-            LibENet.HostBandwidthLimit(Pointer, (uint)incomingBandwidth, (uint)outgoingBandwidth);
+            LibENet.HostBandwidthLimit(m_Pointer, unchecked((uint)incomingBandwidth), unchecked((uint)outgoingBandwidth));
         }
 
+        /// <summary>
+        /// Limits the maximum allowed channels of future incoming connections.
+        /// </summary>
         public void ChannelLimit(byte channels)
         {
             CheckDispose();
 
-            LibENet.HostChannelLimit(Pointer, (UIntPtr)channels);
+            LibENet.HostChannelLimit(m_Pointer, unchecked((UIntPtr)channels));
         }
 
+        /// <summary>
+        /// Checks for any queued events on the host and dispatches one if available.
+        /// </summary>
         public ENetEvent CheckEvents()
         {
             CheckDispose();
 
-            var native = new Native.ENetEvent();
-            LibENet.HostCheckEvents(Pointer, &native);
-            return NativeToManagedEvent(ref native);
+            NativeENetEvent native;
+            if (LibENet.HostCheckEvents(m_Pointer, &native) < 0)
+                ThrowHelper.ThrowENetFailure();
+
+            return new ENetEvent(native);
         }
 
+        /// <summary>
+        /// Waits for events on the host specified and shuttles packets between the host and its peers.
+        /// </summary>
+        public ENetEvent Service(TimeSpan timeout)
+        {
+            CheckDispose();
+
+            NativeENetEvent native;
+
+            if (LibENet.HostService(m_Pointer, &native, unchecked((uint)timeout.TotalMilliseconds)) < 0)
+                ThrowHelper.ThrowENetFailure();
+
+            return new ENetEvent(native);
+        }
+
+        /// <summary>
+        /// Sends any queued packets on the host specified to its designated peers.
+        /// </summary>
         public void Flush()
         {
             CheckDispose();
 
-            LibENet.HostFlush(Pointer);
+            LibENet.HostFlush(m_Pointer);
         }
 
-        public void Service() => Service(1);
-        public void Service(uint timeout)
-        {
-            while (Service(out ENetEvent e, timeout))
-            {
-                if (e is ENetNoneEventArgs) continue;
-
-                if (e is ENetConnectEventArgs connect)
-                {
-                    OnConnect?.Invoke(this, connect);
-                    continue;
-                }
-
-                if (e is ENetDisconnectEventArgs disconnect)
-                {
-                    disconnect.Peer.RaiseDisconnectEvent(disconnect.Data);
-                    continue;
-                }
-
-                if (e is ENetReceiveEventArgs receive)
-                {
-                    receive.Peer.RaiseReceiveEvent(receive.Packet);
-                    continue;
-                }
-            }
-        }
-
-        public bool Service(out ENetEvent e, uint timeout)
-        {
-            CheckDispose();
-            var native = new Native.ENetEvent();
-            int result;
-
-            result = LibENet.HostService(Pointer, &native, timeout);
-
-            if (result < 0)
-                throw new Exception("Service failure.");
-
-            if (result == 0)
-            {
-                e = new ENetNoneEventArgs();
-            }
-            else
-            {
-                e = NativeToManagedEvent(ref native);
-            }
-
-            return true;
-        }
-
+        /// <summary>
+        /// Enables compression with given custom compressor
+        /// </summary>
         public void CompressWith(ENetCompressor compressor)
         {
             CheckDispose();
-            if (compressor.Host != null && compressor.Host != this)
+
+            if (compressor == null)
+                throw new ArgumentNullException(nameof(compressor));
+
+            if (m_Compressor != null)
             {
-                throw new Exception("Compressor is already in use by another host.");
+                DisableCompression();
             }
 
-            compressor.Host = this;
-            Native.ENetCompressor native = new Native.ENetCompressor();
-            native.Context = compressor.AllocHandle();
-            native.Compress = Marshal.GetFunctionPointerForDelegate(ENetCompressor.CompressDelegate);
-            native.Decompress = Marshal.GetFunctionPointerForDelegate(ENetCompressor.DecompressDelegate);
-            native.Destroy = Marshal.GetFunctionPointerForDelegate(ENetCompressor.DestroyDelegate);
-            LibENet.HostCompress(Pointer, &native);
-            Compressor = compressor;
+            m_CompressorCompressCallback = (_, inBuffers, inBufferCount, inLimit, outData, outLimit) =>
+            {
+                var buffersCount32 = (int)inBufferCount;
+
+                compressor.BeginCompress((int)inLimit);
+
+                for (int i = 0; i < buffersCount32; i++)
+                {
+                    compressor.CompressChunk(inBuffers[i].AsSpan());
+                }
+
+                return (UIntPtr)compressor.EndCompress(new Span<byte>(outData.ToPointer(), (int)outLimit));
+            };
+
+            m_CompressorDecompressCallback = (_, inData, inLimit, outData, outLimit) =>
+            {
+                return (UIntPtr)compressor.Decompress(new ReadOnlySpan<byte>(inData.ToPointer(), (int)inLimit),
+                                                      new Span<byte>(outData.ToPointer(), (int)outLimit));
+            };
+
+            NativeENetCompressor nativeCompressor = default;
+            nativeCompressor.Context = new IntPtr(1);
+            nativeCompressor.Destroy = IntPtr.Zero;
+            nativeCompressor.Compress = Marshal.GetFunctionPointerForDelegate(m_CompressorCompressCallback);
+            nativeCompressor.Decompress = Marshal.GetFunctionPointerForDelegate(m_CompressorDecompressCallback);
+
+            LibENet.HostCompress(m_Pointer, &nativeCompressor);
         }
 
-        public void CompressWithDeflate() => CompressWithDeflate(CompressionLevel.Optimal);
-        public void CompressWithDeflate(CompressionLevel compressionLevel) => CompressWith(new ENetDeflateCompressor(compressionLevel));
-
+        /// <summary>
+        /// Enables compression using ENet's builtin range-coder compression
+        /// </summary>
         public void CompressWithRangeCoder()
         {
             CheckDispose();
 
-            if (LibENet.HostCompressWithRangeCoder(Pointer) != 0)
-                throw new Exception("Failed to set compressor to RangeCoder.");
-            Compressor = null;
+            if (m_CompressorCompressCallback != null)
+            {
+                DisableCompression();
+            }
+
+            if (LibENet.HostCompressWithRangeCoder(m_Pointer) < 0)
+                ThrowHelper.ThrowENetHostSetCompressWithRangeCoderFailed();
+
+            m_Compressor = s_RangeCoderCompressor;
         }
 
-        public void DoNotCompress()
+        /// <summary>
+        /// Disables compression
+        /// </summary>
+        public void DisableCompression()
         {
             CheckDispose();
 
-            LibENet.HostCompress(Pointer, (Native.ENetCompressor*)IntPtr.Zero);
-            Compressor = null;
+            if (m_Compressor != null)
+            {
+                m_CompressorCompressCallback = null;
+                m_CompressorDecompressCallback = null;
+                m_Compressor.Dispose();
+                m_Compressor = null;
+            }
+
+            LibENet.HostCompress(m_Pointer, null);
         }
 
+        /// <summary>
+        /// Enables checksum with given custom checksum method
+        /// </summary>
         public void ChecksumWith(ENetChecksum checksum)
         {
             CheckDispose();
 
-            if (checksum.Host != null && checksum.Host != this)
+            if (checksum == null)
+                throw new ArgumentNullException(nameof(checksum));
+
+            if (m_Checksum != null)
             {
-                throw new Exception("Checksum is already in-use by another host.");
+                DisableChecksum();
             }
 
-            if (Checksum != null)
-            {
-                Checksum.Dispose();
-                Checksum = null;
-            }
+            m_Checksum = checksum;
 
-            Checksum = checksum;
-            *m_pChecksumCallback = Marshal.GetFunctionPointerForDelegate(ChecksumDelegate);
+            m_ChecksumCallback = (buffers, buffersCount) =>
+            {
+                var buffersCount32 = checked((int)buffersCount);
+                checksum.Begin();
+                for (int i = 0; i < buffersCount32; i++)
+                {
+                    checksum.Sum(buffers[i].AsSpan());
+                }
+                return checksum.End();
+            };
+
+            *m_pChecksumCallback = Marshal.GetFunctionPointerForDelegate(m_ChecksumCallback);
         }
 
-
+        /// <summary>
+        /// Enables ENet's builtin CRC32 checksum
+        /// </summary>
         public void ChecksumWithCRC32()
         {
             CheckDispose();
 
             if (Checksum != null)
             {
-                Checksum.Dispose();
-                Checksum = null;
+                DisableChecksum();
             }
 
+            m_Checksum = s_Crc32Checksum;
             *m_pChecksumCallback = LibENet.GetProc("enet_crc32");
         }
 
-        public void DoNotChecksum()
+        /// <summary>
+        /// Disables checksum
+        /// </summary>
+        public void DisableChecksum()
         {
             CheckDispose();
 
-            if (Checksum != null)
+            if (m_Checksum != null)
             {
-                Checksum.Dispose();
-                Checksum = null;
+                m_ChecksumCallback = null;
+                m_Checksum.Dispose();
+                m_Checksum = null;
             }
 
             *m_pChecksumCallback = IntPtr.Zero;
         }
 
-        [Obsolete("This feature is not tested")]
-        public void Intercept(ENetInterceptor interceptor)
+        /// <summary>
+        /// Intercepts host events with given callback
+        /// </summary>
+        /// <param name="callback">Callback which intercepts the events</param>
+        public void InterceptWith(ENetInterceptCallback callback)
         {
             CheckDispose();
 
-            if (Interceptor != null)
-            {
-                Interceptor.Dispose();
-                Interceptor = null;
-            }
+            if (callback == null)
+                throw new ArgumentNullException(nameof(callback));
 
-            if (interceptor.Host != null && interceptor.Host != this)
-            {
-                throw new Exception("Interceptor is already in-use by another host.");
-            }
+            if (m_InterceptCallback != null)
+                DisableInterception();
 
-            Interceptor = interceptor;
-            *m_pInterceptCallback = Marshal.GetFunctionPointerForDelegate(m_InterceptDelegate);
+            m_InterceptCallback = callback;
+            *m_pInterceptCallback = Marshal.GetFunctionPointerForDelegate(callback);
         }
 
-        public void DoNotIntercept()
+        /// <summary>
+        /// Disables interception
+        /// </summary>
+        public void DisableInterception()
         {
             CheckDispose();
 
-            if (Interceptor != null)
-            {
-                Interceptor.Dispose();
-                Interceptor = null;
-            }
-
+            m_InterceptCallback = null;
             *m_pInterceptCallback = IntPtr.Zero;
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (Pointer == IntPtr.Zero) return;
+            LibENet.HostDestroy(m_Pointer);
 
-            try { StopServiceThread(); } catch { }
+            if (disposing)
+                return;
 
-            if (Compressor != null)
+            m_ChecksumCallback = null;
+            m_InterceptCallback = null;
+            m_CompressorCompressCallback = null;
+            m_CompressorDecompressCallback = null;
+
+            if (m_Compressor != null)
             {
-                Compressor.Dispose();
-                Compressor = null;
+                m_Compressor.Dispose();
+                m_Compressor = null;
             }
 
-            if (Checksum != null)
+            if (m_Checksum != null)
             {
-                Checksum.Dispose();
-                Checksum = null;
-            }
-
-            if (Interceptor != null)
-            {
-                Interceptor.Dispose();
-                Interceptor = null;
-            }
-
-            m_Peers.ForEach(p => p.FreeHandle());
-            LibENet.HostDestroy(Pointer);
-            Pointer = IntPtr.Zero;
-        }
-
-        public void StartServiceThread()
-        {
-            CheckDispose();
-            if (m_ServiceThread != null)
-                throw new Exception("Servicing thread is already started.");
-
-            m_ServiceThreadStopEvent = new ManualResetEvent(false);
-            m_ServiceThreadStopToken = new CancellationTokenSource();
-            m_ServiceThread = new Thread(ServiceThread);
-            m_ServiceThread.IsBackground = true;
-            m_ServiceThread.Start();
-        }
-
-        public void StopServiceThread()
-        {
-            CheckDispose();
-            if (m_ServiceThread == null)
-                throw new Exception("Servicing thread is already stopped.");
-
-            m_ServiceThreadStopToken.Cancel();
-            m_ServiceThreadStopEvent.WaitOne();
-
-            m_ServiceThreadStopToken.Dispose();
-            m_ServiceThreadStopToken = null;
-            m_ServiceThreadStopEvent.Dispose();
-            m_ServiceThreadStopEvent = null;
-            m_ServiceThread = null;
-        }
-
-        private void ServiceThread()
-        {
-            while (!m_ServiceThreadStopToken.IsCancellationRequested)
-            {
-                Service();
-            }
-
-            m_ServiceThreadStopEvent.Set();
-        }
-
-        private ENetEvent NativeToManagedEvent(ref Native.ENetEvent native)
-        {
-            switch (native.Type)
-            {
-                case ENetEventType.None:
-                    return null;
-
-                case ENetEventType.Connect:
-                    var connect = new ENetConnectEventArgs();
-                    if (native.Peer->Data == IntPtr.Zero)
-                    {
-                        connect.Peer = new ENetPeer(this, native.Peer);
-                    }
-                    else
-                    {
-                        connect.Peer = ENetPeer.FromPtr(native.Peer->Data);
-                    }
-                    connect.Peer.RemoteEndPoint = native.Peer->Address.ToEndPoint();
-                    connect.Data = native.Data;
-                    return connect;
-
-                case ENetEventType.Disconnect:
-                    if (native.Peer->Data == IntPtr.Zero)
-                        throw new NullReferenceException("Peer->Data");
-
-                    var disconnect = new ENetDisconnectEventArgs();
-                    disconnect.Peer = ENetPeer.FromPtr(native.Peer->Data);
-                    disconnect.Data = native.Data;
-                    disconnect.Peer.FreeHandle();
-                    return disconnect;
-
-                case ENetEventType.Receive:
-                    if (native.Peer->Data == IntPtr.Zero)
-                        throw new NullReferenceException("Peer->Data");
-
-                    var receive = new ENetReceiveEventArgs();
-                    receive.Peer = ENetPeer.FromPtr(native.Peer->Data);
-                    receive.Packet = new ENetPacket(native.Packet, native.ChannelID);
-                    LibENet.PacketDestroy(native.Packet);
-                    return receive;
-
-                default:
-                    throw new NotImplementedException(native.Type.ToString());
+                m_Checksum.Dispose();
+                m_Checksum = null;
             }
         }
 
@@ -513,141 +554,6 @@ namespace ENet.Managed
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(ENetHost));
-        }
-
-        private uint ChecksumCallback(Native.ENetBuffer* buffers, UIntPtr buffersCount)
-        {
-            Checksum.Begin();
-            byte[] input = null;
-
-            for (int i = 0; i < buffersCount.ToUInt32(); i++)
-            {
-                var buffer = buffers[i];
-
-                if (Checksum.Method == ENetChecksum.ChecksumMethod.Pointer)
-                {
-                    Checksum.Sum((byte*)buffer.Data, (int)buffer.DataLength);
-                    continue;
-                }
-
-                if (Checksum.Method == ENetChecksum.ChecksumMethod.Array)
-                {
-                    var count = (int)buffer.DataLength.ToUInt32();
-                    if (input == null)
-                    {
-                        input = ByteArrayPool.Shared.Rent(count);
-                    }
-                    else if (input.Length < count)
-                    {
-                        ByteArrayPool.Shared.Return(input);
-                        input = ByteArrayPool.Shared.Rent(count);
-                    }
-
-                    fixed (byte* dest = input)
-                    {
-                        Platform.Current.MemoryCopy((IntPtr)dest, buffer.Data, buffer.DataLength);
-                    }
-
-                    Checksum.Sum(input, count);
-                    continue;
-                }
-
-                throw new NotImplementedException(Checksum.Method.ToString());
-            }
-
-            if (input != null)
-            {
-                ByteArrayPool.Shared.Return(input);
-            }
-
-            return Checksum.End();
-        }
-
-        private ENetInterceptionResult InterceptCallback(IntPtr host, Native.ENetEvent* e)
-        {
-            if (Interceptor.Method == ENetInterceptor.InterceptionMethod.Unmanaged)
-            {
-                return Interceptor.Intercept(m_pReceivedAddress, (byte**)m_pReceivedData, m_pReceivedDataLength, e);
-            }
-
-            if (Interceptor.Method == ENetInterceptor.InterceptionMethod.Managed)
-            {
-                IPEndPoint endPoint = (*m_pReceivedAddress).ToEndPoint();
-                byte[] buffer = new byte[(*m_pReceivedDataLength).ToUInt32()];
-
-                fixed (byte* dest = buffer)
-                {
-                    Platform.Current.MemoryCopy((IntPtr)dest, *m_pReceivedData, *m_pReceivedDataLength);
-                }
-
-                byte[] bufferRef = buffer;
-                var result = Interceptor.Intercept(endPoint, ref bufferRef, out ENetEvent @event);
-
-                if (result == ENetInterceptionResult.Error)
-                    return result;
-
-                if (bufferRef == buffer)
-                {
-                    fixed (byte* src = bufferRef)
-                    {
-                        Platform.Current.MemoryCopy((IntPtr)src, *m_pReceivedData, *m_pReceivedDataLength);
-                    }
-                }
-                else if (bufferRef != null)
-                {
-                    Marshal.FreeHGlobal(*m_pReceivedData);
-                    var bufferPtr = Marshal.AllocHGlobal(bufferRef.Length);
-                    *m_pReceivedData = bufferPtr;
-                    *m_pReceivedDataLength = (UIntPtr)bufferRef.Length;
-
-                    fixed (byte* src = bufferRef)
-                    {
-                        Platform.Current.MemoryCopy((IntPtr)src, bufferPtr, (UIntPtr)bufferRef.Length);
-                    }
-                }
-
-                if (result == ENetInterceptionResult.Ignore)
-                    return result;
-
-                if (@event == null)
-                {
-                    e->Type = ENetEventType.None;
-                    return result;
-                }
-
-                if (@event is ENetConnectEventArgs)
-                {
-                    var connect = @event as ENetConnectEventArgs;
-                    e->Type = ENetEventType.Connect;
-                    e->Peer = connect.Peer.Unsafe;
-                    e->Data = connect.Data;
-                    return result;
-                }
-
-                if (@event is ENetDisconnectEventArgs)
-                {
-                    var disconnect = @event as ENetConnectEventArgs;
-                    e->Type = ENetEventType.Disconnect;
-                    e->Peer = disconnect.Peer.Unsafe;
-                    e->Data = disconnect.Data;
-                    return result;
-                }
-
-                if (@event is ENetReceiveEventArgs)
-                {
-                    var receive = @event as ENetReceiveEventArgs;
-                    e->Type = ENetEventType.Receive;
-                    e->Peer = receive.Peer.Unsafe;
-                    e->ChannelID = receive.Packet.Channel;
-                    fixed (byte* data = receive.Packet.m_Payload)
-                    {
-                        e->Packet = LibENet.PacketCreate((IntPtr)data, (UIntPtr)receive.Packet.m_Payload.Length, receive.Packet.Flags & ~ENetPacketFlags.NoAllocate);
-                    }
-                    return result;
-                }
-            }
-
-            throw new NotImplementedException(Interceptor.Method.ToString());
         }
     }
 }
