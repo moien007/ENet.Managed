@@ -13,21 +13,20 @@ namespace ExampleChatClient
 
         static void Main(string[] args)
         {
-            // You should call this at start of your application or before any usage of ENet
+            // You should call this at start of your application or before any usage of ENet library
             Console.WriteLine("Starting ENet...");
             ManagedENet.Startup();
 
-            // By passing null as endpoint the system will pick up a random open endpoint for our host
-            // because we don't want anybody be able to connect to us, since we are the client and we
-            // want to connect instead of listen
+            // By passing null as endpoint the system will pick up a random open endpoint to listen on
+            // since we are the client we choose a random endpoint
             IPEndPoint listenEndPoint = null;
             var host = new ENetHost(listenEndPoint, MaximumPeers, MaximumChannels);
 
             // This is the endpoint that the server is listening on
-            // IPAddress.Loopback is same as 127.0.0.1 on most systems
+            // IPAddress.Loopback equals to 127.0.0.1 on most systems
             IPEndPoint connectEndPoint = new IPEndPoint(IPAddress.Loopback, 27015);
 
-            // Here we connect to the server by creating a peer and sending the connect pack
+            // Here we connect to the server by creating a peer and sending the connect packet
             // Connect Data is a number which we can supply with our packet 
             // this number can be ignored by server
             uint connectData = 0;
@@ -36,9 +35,6 @@ namespace ExampleChatClient
             while (true)
             {
                 var Event = host.Service(TimeSpan.FromMilliseconds(250));
-
-                // Make sure the connected peer that event is pointing at is our peer
-                //Trace.Assert(Event.Peer.IsNull || Event.Peer == peer);
 
                 switch (Event.Type)
                 {
@@ -71,7 +67,7 @@ namespace ExampleChatClient
                         // Decode packet data into ASCII string
                         var dataString = Encoding.ASCII.GetString(Event.Packet.Data);
 
-                        // We done with the packet so we destroy it
+                        // We are done with this packet so we destroy it
                         Event.Packet.Destroy();
 
                         if (dataString.Trim().EndsWith("/shutdown"))

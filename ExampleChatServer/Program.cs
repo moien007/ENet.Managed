@@ -43,10 +43,10 @@ namespace ExampleChatServer
                         continue;
 
                     case ENetEventType.Receive:
-                        // Decode packet data bytes into ASCII string
+                        // Decode packet data bytes to ASCII string
                         var dataString = Encoding.ASCII.GetString(Event.Packet.Data);
 
-                        // We done with the packet so we destroy it (don't forget to do that)
+                        // We are done with this packet so we destroy it
                         // if you miss this you will end up with huge memory leaks
                         Event.Packet.Destroy();
 
@@ -55,13 +55,13 @@ namespace ExampleChatServer
 
                         var packet = Encoding.ASCII.GetBytes(dataString);
 
-                        // If peer sent shutdown command
+                        // If the peer sent shutdown command
                         if (dataString.Trim().EndsWith("/shutdown"))
                         {
                             Console.WriteLine($"Peer {Event.Peer.GetRemoteEndPoint()} sent shutdown command");
 
                             // this will broadcast the packet to all connected peers
-                            // also packets including the peer that sent this packet 
+                            // also including the peer that sent this packet 
                             host.Broadcast(Event.ChannelId, packet, ENetPacketFlags.Reliable);
 
                             // Break the switch block in order to break the main loop (goto X)
