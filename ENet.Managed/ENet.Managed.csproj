@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;net45</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
@@ -9,7 +9,7 @@
     
     <!--CS1591 warns us to comment every publicly accessible method\field\property, in future we may remove it-->
     <!--CA2101 warns us to specifiy string encoding for every P\Invoke definition which I find it annoying-->
-    <!--CA1063 blindly warns us to implement IDisposable correctly-->
+    <!--CA1063 warns us to implement IDisposable correctly-->
     <NoWarn>CS1591,CA2101,CA1063</NoWarn>
     
     <!--Nuget package properties-->
@@ -26,8 +26,8 @@
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.3" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
   
 </Project>
