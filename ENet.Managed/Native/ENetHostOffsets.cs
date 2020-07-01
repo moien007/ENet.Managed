@@ -3,7 +3,7 @@
 namespace ENet.Managed.Native
 {
     // TODO: The way we are using ENetHost struct is too dangerous and unstable
-    // consider defining ENetHost based on actual C structure like CENetPeer.cs
+    // consider defining ENetHost based on actual C structure like NativeENetPeer.cs
     public static class ENetHostOffset
     {
         public static readonly int ChecksumOffset = Environment.Is64BitProcess ? 2704 : 2136;
