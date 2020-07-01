@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using ENet.Managed.Common;
 
 namespace ENet.Managed.Compressors
