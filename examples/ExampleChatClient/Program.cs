@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Text;
 using ENet.Managed;
@@ -30,6 +29,9 @@ namespace ExampleChatClient
             // Connect Data is a number which we can supply with our packet 
             // this number can be ignored by server
             uint connectData = 0;
+
+            // Send connect request
+            Console.WriteLine("Requesting connection...");
             var peer = host.Connect(connectEndPoint, MaximumChannels, connectData);
 
             while (true)
@@ -39,29 +41,38 @@ namespace ExampleChatClient
                 switch (Event.Type)
                 {
                     case ENetEventType.None:
-
                         // Check if user is about to write something to input
                         if (Console.KeyAvailable)
                         {
                             // Read user input
                             var line = Console.ReadLine();
 
-                            // Encode input into ASCII bytes
+                            // If user wanted to disconnect
+                            if (line == "/disconnect")
+                            {
+                                // Request disconnect
+                                peer.Disconnect(data: 0);
+
+                                // Go for next event
+                                continue;
+                            }
+
+                            // Encode the input into ASCII bytes
                             var data = Encoding.ASCII.GetBytes(line);
 
-                            // Send packet through channel 0 with reliable flag set
-                            peer.Send(0, data, ENetPacketFlags.Reliable);
+                            // Send packet through channel 0 with the reliable packet flag set
+                            peer.Send(channelId: 0, data, ENetPacketFlags.Reliable);
                         }
 
                         continue;
 
                     case ENetEventType.Connect:
-                        Console.WriteLine("Connected");
+                        Console.WriteLine("Connected, write /disconnect to disconnect from server");
                         continue;
 
                     case ENetEventType.Disconnect:
                         Console.WriteLine("Disconnected");
-                        break;
+                        goto shutdown;
 
                     case ENetEventType.Receive:
                         // Decode packet data into ASCII string
@@ -70,25 +81,15 @@ namespace ExampleChatClient
                         // We are done with this packet so we destroy it
                         Event.Packet.Destroy();
 
-                        if (dataString.Trim().EndsWith("/shutdown"))
-                        {
-                            Console.WriteLine("Server shutdown");
-                            break; // End switch block in order to break the while loop (goto X)
-                        }
-                        else
-                        {
-                            Console.WriteLine(dataString);
-                            continue;
-                        }
+                        Console.WriteLine(dataString);
+                        continue;
 
                     default:
                         throw new NotImplementedException();
                 }
-
-                // X: Break the while loop
-                break;
             }
 
+         shutdown:
             host.Dispose();
 
             Console.WriteLine("Shutdown ENet...");

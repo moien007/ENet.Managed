@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ENet.Managed\ENet.Managed.csproj" />
+    <ProjectReference Include="..\..\src\ENet.Managed\ENet.Managed.csproj" />
   </ItemGroup>
 
 </Project>

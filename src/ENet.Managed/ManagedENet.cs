@@ -7,11 +7,12 @@ using ENet.Managed.Native;
 namespace ENet.Managed
 {
     /// <summary>
-    /// Manages ENet's initialization and deinitialization of ENet library
+    /// Manages initialization and deinitialization of ENet library
     /// </summary>
     /// <remarks>
     /// The methods of this should be manually called at beginning and end 
-    /// of your application. This class is not thread-safe.
+    /// of your application.
+    /// This class is not thread-safe.
     /// </remarks>
     public unsafe static class ManagedENet
     {
@@ -20,9 +21,9 @@ namespace ENet.Managed
         
         // We hold this delegates references in a static variable
         // in order to prevent garbage collector to collect them
-        private static readonly ENetMemoryAllocCallback MemAllocDelegate;
-        private static readonly ENetMemoryFreeCallback MemFreeDelegate;
-        private static readonly ENetNoMemoryCallback NoMemoryDelegate;
+        private static readonly ENetMemoryAllocCallback s_MemAllocDelegate;
+        private static readonly ENetMemoryFreeCallback s_MemFreeDelegate;
+        private static readonly ENetNoMemoryCallback s_NoMemoryDelegate;
 
         /// <summary>
         /// Indicates whether ENet has initialized or not
@@ -60,39 +61,47 @@ namespace ENet.Managed
         static ManagedENet()
         {
             Started = false;
-            MemAllocDelegate = MemAllocCallback;
-            MemFreeDelegate = MemFreeCallback;
-            NoMemoryDelegate = NoMemoryCallback;
+            s_LinkedVersion = null;
+            s_Allocator = null;
             
-            s_LinkedVersion = null!;
-            s_Allocator = null!;
+            s_MemAllocDelegate = MemAllocCallback;
+            s_MemFreeDelegate = MemFreeCallback;
+            s_NoMemoryDelegate = NoMemoryCallback;
         }
 
         /// <summary>
         /// Initializes ENEt with specified memory allocator
         /// </summary>
-        /// <param name="allocator">If this parameter receives null <see cref="ENetGlobalHeapAllocator"/> will be used instead</param>
+        /// <param name="allocator">If this parameter receives null ENet will use its own heap allocator.</param>
         public static void Startup(ENetAllocator? allocator = null)
         {
             if (Started) return;
             Started = true;
 
-            s_Allocator = (allocator == null) ? ENetGlobalHeapAllocator.Instance : allocator;
-
             LibENet.Load();
 
-            NativeENetCallbacks callbacks = new NativeENetCallbacks();
-            callbacks.Malloc = Marshal.GetFunctionPointerForDelegate(MemAllocDelegate);
-            callbacks.Free = Marshal.GetFunctionPointerForDelegate(MemFreeDelegate);
-            callbacks.NoMemory = Marshal.GetFunctionPointerForDelegate(NoMemoryDelegate);
-
             var linkedVer = LibENet.LinkedVersion();
-            if (LibENet.InitializeWithCallbacks(linkedVer, &callbacks) != 0)
-                ThrowHelper.ThrowENetInitializationFailed();
-
             s_LinkedVersion = new Version((int)(((linkedVer) >> 16) & 0xFF),
                                           (int)(((linkedVer) >> 8) & 0xFF),
                                           (int)((linkedVer) & 0xFF));
+
+            if (allocator == null)
+            {
+                if (LibENet.Initialize() != 0)
+                    ThrowHelper.ThrowENetInitializationFailed();
+            }
+            else
+            {
+                s_Allocator = allocator; 
+
+                NativeENetCallbacks callbacks = new NativeENetCallbacks();
+                callbacks.Malloc = Marshal.GetFunctionPointerForDelegate(s_MemAllocDelegate);
+                callbacks.Free = Marshal.GetFunctionPointerForDelegate(s_MemFreeDelegate);
+                callbacks.NoMemory = Marshal.GetFunctionPointerForDelegate(s_NoMemoryDelegate);
+
+                if (LibENet.InitializeWithCallbacks(linkedVer, &callbacks) != 0)
+                    ThrowHelper.ThrowENetInitializationFailed();
+            }
         }
 
         /// <summary>
@@ -111,7 +120,7 @@ namespace ENet.Managed
             LibENet.Unload();
             if (delete) LibENet.TryDelete();
 
-            s_Allocator!.Dispose();
+            s_Allocator?.Dispose();
             s_Allocator = null;
         }
 
@@ -122,7 +131,7 @@ namespace ENet.Managed
 
             if (allocator != null)
             {
-                return allocator!.Allocate((int)size.ToUInt32());
+                return allocator.Allocate((int)size.ToUInt32());
             }
             else
             {

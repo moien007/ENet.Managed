@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENet.Managed", "ENet.Managed\ENet.Managed.csproj", "{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENet.Managed", "src\ENet.Managed\ENet.Managed.csproj", "{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleChatServer", "examples\ExampleChatServer\ExampleChatServer.csproj", "{632A50E8-BB35-472C-882F-7649885C5E64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleChatServer", "ExampleChatServer\ExampleChatServer.csproj", "{632A50E8-BB35-472C-882F-7649885C5E64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleChatClient", "examples\ExampleChatClient\ExampleChatClient.csproj", "{41340270-C1CB-420B-B8D1-F394C41D70BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleChatClient", "ExampleChatClient\ExampleChatClient.csproj", "{41340270-C1CB-420B-B8D1-F394C41D70BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests.csproj", "{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +21,6 @@ Global
 		{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B1CAF2F-9649-46C2-9F97-C8E29C3ABB72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A43BBD4A-9847-4F19-93E9-571ACAB5CCF0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{632A50E8-BB35-472C-882F-7649885C5E64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{632A50E8-BB35-472C-882F-7649885C5E64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{632A50E8-BB35-472C-882F-7649885C5E64}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +29,10 @@ Global
 		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41340270-C1CB-420B-B8D1-F394C41D70BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

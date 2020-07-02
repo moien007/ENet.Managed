@@ -32,7 +32,7 @@ namespace ENet.Managed
         NoAllocate = (1 << 2),
 
         /// <summary>
-        /// Indicates packet data fragments must be sent unreliable
+        /// Indicates the packet data fragments must be sent unreliable
         /// </summary>
         UnreliableFragment = (1 << 3),
     }

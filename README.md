@@ -1,42 +1,61 @@
+![Discord](https://img.shields.io/discord/728246944765313075?label=discord)
+![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)
+![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)
+
 ## ENet.Managed
-I was looking for a reliable UDP implementation, after a lots of searches i found [ENet][enet-repo].<br>
-Unlike other libraries, ENet is lightwight, high perfomance and written in C, take a look at [Benchmarks][benchmark].<br>
-ENet.Managed (or Managed ENet) is managed wrapper for [ENet][enet-repo] written in C# and it tries to:
-* Keep the perfomance same as possible 
-* Keep the flexibility 
-* Providing more features
-* Providing managed interface for ENet
-* And more...
+**ENet** is cross-platform reliable UDP networking library written in C and **ENet.Managed** is an unofficial, managed wrapper for ENet available for specific set of platforms. You can checkout ENet's repo [here][enet-repo].
 
+# Quick start (Usage)
+Take a look at **examples** folder.
 
-#### [Available on NuGet][nuget]
----
-### Quick start (Usage)
-TODO, for now please take a look at ENetChatSample
+# Features
+* Supports **AnyCPU** target
+* It's cross-platform via .NET Standard
+* It's available via NuGet package manager. ([Here][nuget])
+* You can set custom
+  * compression method (not enabled by default, recommended to specify a compressor using <code>CompressWith*</code>)
+  * checksum algorithm (not enabled by default, recommended to specify a checksum using <code>ChecksumWith*</code>)
+  * heap allocator (by default ManagedENet forces ENet to use a custom allocator which is faster than malloc, take a look at <code>ENetManagedAllocator.cs</code>)
+* Takes advantage of <code>Span\<byte></code> and friends to reduce GC allocations.
+* Provides nearly all features of ENet via managed API.
 
-### Features
-* Supports Any CPU
-* Supports Windows and Linux (.NET Core 2.0 and .NET 4.5+)
-* Multicast
-* Custom compression (Not enabled by default, recommended to specify a compressor using <code>CompressWith*</code>)
-* Custom checksum (Not enabled by default, recommended to specify a checksum using <code>ChecksumWith*</code>)
-* Custom allocator (by default ManagedENet forces ENet to use a custom allocator which is faster than malloc, take a look at <code>ENetManagedAllocator.cs</code>)
-* And more
+# Benchmarks
+You can see how ENet performs compared to libraries by taking look [here][benchmark].<br/>
+Benchmarks for the wrapper itself are not available yet but the it should have near native performance when are optimizations enabled.
 
-### TODO
-* Add summaries.
+# Supported frameworks
+### .NET Framework
+* [X] 4.5
+### .NET Standard
+* [X] 2.0
+* [X] 2.1
 
-### Notes
-* This wrapper holds x86 and x64 release versions of ENet from [this][enet-repo] repo in its resources and will extracted to temp folder by default. Anyway you can change path by setting <Code>LibENet.DllPath</code> before calling <code>ManagedENet.Startup</code> but keep in mind you have to seperate x86 and x64 path by checking <code>Environment.Is64BitProcess</code>.
-* You can set compressor to <code>ENetDeflateCompressor</code> which uses <code>System.IO.Compression.DeflateStream</code>
-* Don't forget to enable checksum (ENet library provides CRC32 but not enabled by default, enable it using <code>ChecksumWithCRC32</code>) 
-* <code>Service</code> method may takes more than specified timeout, in my experience it burns CPU if specify a timeout more 10ms, also it should be noted that a single call to <code>Service</code> method may raise multiple events.
+# Supported platfroms
+### Windows 
+* [X] X86
+* [X] X86_64
+* [ ] ARM32
+### Linux 
+* [X] X86
+* [X] X86_64
+* [X] ARM32
+* [ ] ARM64
+### MacOS
+* [ ] X64
 
-### Contribution
-Contributions are welcome.
+> You can contribute by providing **clean** binaries for unsupported platforms. 
 
-### License
-MIT
+# Notes
+* This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior by manually initializing ENet using <code>LibENet</code> class.
+* ENet's checksum feature is disabled by default, it is highly recommended to use checksum to avoid receiving damaged packets. 
+  * <code>ChecksumWithCRC32</code> enables ENet's builtin checksum feature.
+* In case of consuming custom version of ENet you have to sync the data structures offsets with the wrapper. 
+
+# Contribution
+You can contribute by reporting bugs and making pull requests.
+
+# License
+MIT open-source license.
 
 [enet-repo]: http://www.github.com/lsalzman/enet
 [benchmark]: http://www.github.com/nxrighthere/BenchmarkNet/wiki/Benchmark-Results

@@ -46,53 +46,24 @@ namespace ExampleChatServer
                         // Decode packet data bytes to ASCII string
                         var dataString = Encoding.ASCII.GetString(Event.Packet.Data);
 
-                        // We are done with this packet so we destroy it
-                        // if you miss this you will end up with huge memory leaks
-                        Event.Packet.Destroy();
-
                         // Here we prefix the dataString with peer's remote endpoint
                         dataString = $"{Event.Peer.GetRemoteEndPoint()}: {dataString}";
 
-                        var packet = Encoding.ASCII.GetBytes(dataString);
+                        Console.WriteLine($"Peer {Event.Peer.GetRemoteEndPoint()}: {dataString}");
 
-                        // If the peer sent shutdown command
-                        if (dataString.Trim().EndsWith("/shutdown"))
-                        {
-                            Console.WriteLine($"Peer {Event.Peer.GetRemoteEndPoint()} sent shutdown command");
+                        // this will broadcast the packet to all connected peers
+                        // including the peer that sent this packet 
+                        host.Broadcast(Event.ChannelId, Event.Packet.Data, ENetPacketFlags.Reliable);
 
-                            // this will broadcast the packet to all connected peers
-                            // also including the peer that sent this packet 
-                            host.Broadcast(Event.ChannelId, packet, ENetPacketFlags.Reliable);
-
-                            // Break the switch block in order to break the main loop (goto X)
-                            break;
-                        }
-                        else // then it's just chat message that we have to broadcast
-                        {
-                            Console.WriteLine($"Peer {Event.Peer.GetRemoteEndPoint()}: {dataString}");
-
-                            // this will broadcast the packet to all connected peers
-                            // including the peer that sent this packet 
-                            host.Broadcast(Event.ChannelId, packet, ENetPacketFlags.Reliable);
-                        }
-
+                        // We are done with the packet that the peer sent so we destroy it
+                        // if you miss this you will end up with memory leaks
+                        Event.Packet.Destroy();
                         continue;
 
                     default:
                         throw new NotImplementedException();
                 }
-
-                // X: Break the main loop
-                break;
             }
-
-            host.Dispose();
-
-            Console.WriteLine("Shutdown ENet...");
-            ManagedENet.Shutdown();
-
-            Console.WriteLine("Server stopped, press any key to close the app");
-            Console.ReadKey();
         }
     }
 }
