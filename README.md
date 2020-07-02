@@ -20,8 +20,8 @@ Take a look at **examples** folder.
 * Provides nearly all features of ENet via managed API.
 
 # Benchmarks
-You can see how ENet performs compared to libraries by taking look [here][benchmark].<br/>
-Benchmarks for the wrapper itself are not available yet but the it should have near native performance when are optimizations enabled.
+You can see how ENet performs compared to other libraries by taking look at [here][benchmark].<br/>
+Benchmarks for the wrapper itself are not available yet but it should have near native performance when optimizations are enabled.
 
 # Supported frameworks
 ### .NET Framework
