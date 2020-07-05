@@ -109,14 +109,16 @@ namespace ENet.Managed
         {
             ThrowIfNull();
 
-            var newRefCount = UIntPtr.Add(m_Native->ReferenceCount, -1);
+            var newRefCount = UIntPtr.Subtract(m_Native->ReferenceCount, 1);
 
-            if (newRefCount.ToUInt32() <= 0)
+            if (newRefCount.ToUInt32() == 0)
             {
                 Destroy();
             }
-
-            m_Native->ReferenceCount = newRefCount;
+            else
+            {
+                m_Native->ReferenceCount = newRefCount;
+            }
         }
 
         /// <summary>
