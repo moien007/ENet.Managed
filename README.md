@@ -1,6 +1,7 @@
 ![Discord](https://img.shields.io/discord/728246944765313075?label=discord)
 ![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)
+[![Build status](https://ci.appveyor.com/api/projects/status/p8v29k0jxaud33ec/branch/master?svg=true)](https://ci.appveyor.com/project/moien007/enet-managed/branch/master)
 
 ## ENet.Managed
 **ENet** is cross-platform reliable UDP networking library written in C and **ENet.Managed** is an unofficial, managed wrapper for ENet available for specific set of platforms. You can checkout ENet's repo [here][enet-repo].

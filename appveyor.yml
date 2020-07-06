@@ -1,0 +1,20 @@
+version: 4.0.{build}
+image: Visual Studio 2019
+build_script:
+- cmd: >-
+    dotnet restore
+
+    dotnet build ENet.Managed.sln -c Release -o build-output
+
+    dotnet pack src\ENet.Managed\ENet.Managed.csproj -c Release -o nuget-packs
+test_script:
+- cmd: dotnet test ENet.Managed.sln -c Debug
+artifacts:
+- path: build-output
+  name: ENet.Managed-build
+- path: nuget-packs\*.nupkg
+  name: ENet.Managed-nugets
+deploy:
+- provider: NuGet
+  api_key:
+    secure: rRuf0W+JGdBSpxWXPthRkvvtnsXKwZhnU44pRh91bRf7I3Ng02tjUwhdnLGKJxx6
