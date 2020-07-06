@@ -18,6 +18,19 @@ namespace ENet.Managed
         /// </summary>
         public bool IsNull => m_Native == null;
 
+        /// <summary>
+        /// Peer state.
+        /// </summary>
+        public ENetPeerState State
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->State;
+            }
+        }
+
         public ENetPeer(NativeENetPeer* peer)
         {
             if (peer == null)
