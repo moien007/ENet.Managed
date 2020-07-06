@@ -50,6 +50,7 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 * ENet's checksum feature is disabled by default, it is highly recommended to use checksum to avoid receiving damaged packets. 
   * <code>ChecksumWithCRC32</code> enables ENet's builtin checksum feature.
 * In case of consuming custom version of ENet you have to sync the data structures offsets with the wrapper. 
+* <code>ENetPeer.DisconnectNow</code> method will not generate <code>ENetEventType.Disconnect</code>.
 
 # Contribution
 You can contribute by reporting bugs and making pull requests.
