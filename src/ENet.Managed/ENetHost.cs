@@ -470,7 +470,7 @@ namespace ENet.Managed
         {
             CheckDispose();
 
-            if (Checksum != null)
+            if (m_Checksum != null)
             {
                 DisableChecksum();
             }
