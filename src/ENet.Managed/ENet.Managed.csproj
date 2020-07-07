@@ -16,7 +16,7 @@
     <Authors>Moien007</Authors>
     <RepositoryUrl>https://github.com/moien007/ENet.Managed</RepositoryUrl>
     <Description>A managed wrapper for ENet UDP Networking library (Windows 32\64bit, Linux 32\64bit\ARM32)</Description>
-    <Version>4.0.2</Version>
+    <Version>4.0.3</Version>
     <PackageProjectUrl>https://github.com/moien007/ENet.Managed</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/moien007/ENet.Managed/blob/master/LICENSE</PackageLicenseUrl>
     <PackageReleaseNotes>Checkout our discord server.</PackageReleaseNotes>
