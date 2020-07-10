@@ -27,8 +27,18 @@ namespace ENet.Managed
         /// </summary>
         public ENetPacketFlags Flags
         {
-            get => m_Native->Flags;
-            set => m_Native->Flags = value;
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->Flags;
+            }
+            set
+            {
+                ThrowIfNull();
+
+                m_Native->Flags = value;
+            }
         }
 
         /// <summary>
@@ -40,17 +50,38 @@ namespace ENet.Managed
         /// </remarks>
         public IntPtr UserData
         {
-            get => m_Native->UserData;
-            set => m_Native->UserData = value;
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->UserData;
+            }
+            set
+            {
+                ThrowIfNull();
+
+                m_Native->UserData = value;
+            }
         }
 
         /// <summary>
-        /// Pointer to native C/decl function that will be called after packet get destroyed.
+        /// Callback to be called after packet gets destoryed.
         /// </summary>
         public IntPtr FreeCallback
         {
-            get => m_Native->FreeCallback;
-            set => m_Native->FreeCallback = value;
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->FreeCallback;
+            }
+
+            set
+            {
+                ThrowIfNull();
+
+                m_Native->FreeCallback = value;
+            }
         }
 
         /// <summary>
@@ -58,7 +89,12 @@ namespace ENet.Managed
         /// </summary>
         public int ReferenceCount
         {
-            get => unchecked((int)m_Native->ReferenceCount);
+            get
+            {
+                ThrowIfNull();
+
+                return unchecked((int)m_Native->ReferenceCount);
+            }
         }
 
         /// <summary>
