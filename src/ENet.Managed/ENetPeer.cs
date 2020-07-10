@@ -31,6 +31,25 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Native user supplied data.
+        /// </summary>
+        public IntPtr UserData
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->Data;
+            }
+            set
+            {
+                ThrowIfNull();
+
+                m_Native->Data = value;
+            }
+        } 
+
         public ENetPeer(NativeENetPeer* peer)
         {
             if (peer == null)
