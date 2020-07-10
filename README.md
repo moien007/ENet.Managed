@@ -52,6 +52,7 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
   * <code>ChecksumWithCRC32</code> enables ENet's builtin checksum feature.
 * In case of consuming custom version of ENet you have to sync the data structures offsets with the wrapper. 
 * <code>ENetPeer.DisconnectNow</code> method will not generate <code>ENetEventType.Disconnect</code>.
+* If you use <code>SetUserData</code> extension methods you have to call <code>UnsetUserData</code> when you done, otherwise memory leak will happen.
 
 # Contribution
 You can contribute by reporting bugs and making pull requests.
