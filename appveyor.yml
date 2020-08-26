@@ -1,4 +1,4 @@
-version: 4.1.{build}
+version: 4.2.{build}-alpha
 image: Visual Studio 2019
 build_script:
 - cmd: >-
@@ -14,7 +14,3 @@ artifacts:
   name: ENet.Managed-build
 - path: nuget-packs\*.nupkg
   name: ENet.Managed-nugets
-deploy:
-- provider: NuGet
-  api_key:
-    secure: rRuf0W+JGdBSpxWXPthRkvvtnsXKwZhnU44pRh91bRf7I3Ng02tjUwhdnLGKJxx6

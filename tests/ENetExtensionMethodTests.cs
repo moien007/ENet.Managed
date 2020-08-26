@@ -1,5 +1,6 @@
 ﻿using ENet.Managed;
 using ENet.Managed.Native;
+
 using NUnit.Framework;
 
 namespace UnitTests

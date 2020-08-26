@@ -26,7 +26,7 @@
         /// Indicates connection is succeed
         /// </summary>
         ConnectingSucceeded,
-       
+
         /// <summary>
         /// Indicates the peer is connected
         /// </summary>

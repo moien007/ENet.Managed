@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+
 using ENet.Managed.Internal;
 using ENet.Managed.Native;
 
-namespace ENet.Managed 
+namespace ENet.Managed
 {
     /// <summary>
     /// Wraps <see cref="NativeENetPacket"/> pointer
@@ -216,8 +217,8 @@ namespace ENet.Managed
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(ENetPacket left, ENetPacket right) => left.Equals(right);
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(ENetPacket left, ENetPacket right) => !left.Equals(right);
-    } 
+    }
 }

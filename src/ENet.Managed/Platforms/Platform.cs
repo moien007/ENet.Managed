@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+
 using ENet.Managed.Internal;
 
 namespace ENet.Managed.Platforms

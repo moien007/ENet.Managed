@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.IO;
-using ENet.Managed.Platforms;
+using System.Runtime.InteropServices;
+
 using ENet.Managed.Internal;
+using ENet.Managed.Platforms;
 
 namespace ENet.Managed.Native
 {
@@ -44,6 +45,10 @@ namespace ENet.Managed.Native
         [UnmanagedFunctionPointer(ENetCallingConvention)]
         public delegate int AddressSetHostDelegate(NativeENetAddress* address, [MarshalAs(UnmanagedType.LPStr)] string hostName);
         public static AddressSetHostDelegate AddressSetHost { get; private set; }
+
+        [UnmanagedFunctionPointer(ENetCallingConvention)]
+        public delegate int AddressSetHostIPDelegate(NativeENetAddress* address, [MarshalAs(UnmanagedType.LPStr)] string hostName);
+        public static AddressSetHostIPDelegate AddressSetHostIP { get; private set; }
 
         [UnmanagedFunctionPointer(ENetCallingConvention)]
         public delegate void HostBandwidthLimitDelegate(IntPtr host, uint incomingBandwidth, uint outgoingBandwidth);
@@ -229,6 +234,7 @@ namespace ENet.Managed.Native
             AddressGetHost = GetProc<AddressGetHostDelegate>("enet_address_get_host");
             AddressGetHostIP = GetProc<AddressGetHostIPDelegate>("enet_address_get_host_ip");
             AddressSetHost = GetProc<AddressSetHostDelegate>("enet_address_set_host");
+            AddressSetHostIP = GetProc<AddressSetHostIPDelegate>("enet_address_set_host_ip");
 
             HostBandwidthLimit = GetProc<HostBandwidthLimitDelegate>("enet_host_bandwidth_limit");
             //HostBandwidthThrottle = GetProc<ENetHostBandwidthThrottleDelegate>("enet_host_bandwidth_throttle");

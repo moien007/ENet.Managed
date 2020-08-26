@@ -1,5 +1,7 @@
-﻿using ENet.Managed.Native;
+﻿using System;
 using System.Runtime.CompilerServices;
+
+using ENet.Managed.Native;
 
 namespace ENet.Managed
 {
@@ -35,6 +37,40 @@ namespace ENet.Managed
             else
             {
                 Packet = default;
+            }
+        }
+
+        /// <summary>
+        /// Disptaches this event to the specified listener based on the event type.
+        /// </summary>
+        /// <param name="listener">Listener to disptach event to.</param>
+        /// <returns>Returns true if any event disptached to listener; otherwise false.</returns>
+        public bool DisptachTo(IENetEventListener listener)
+        {
+            if (listener is null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
+
+            switch (Type)
+            {
+                case ENetEventType.None:
+                    return false;
+
+                case ENetEventType.Connect:
+                    listener.OnConnect(Peer, Data);
+                    return true;
+
+                case ENetEventType.Disconnect:
+                    listener.OnDisconnect(Peer, Data);
+                    return true;
+
+                case ENetEventType.Receive:
+                    listener.OnReceive(Peer, Packet, ChannelId);
+                    return true;
+
+                default:
+                    throw new NotImplementedException();
             }
         }
     }

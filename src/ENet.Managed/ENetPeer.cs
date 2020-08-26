@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Runtime.CompilerServices;
+
 using ENet.Managed.Internal;
 using ENet.Managed.Native;
 
@@ -48,7 +49,7 @@ namespace ENet.Managed
 
                 m_Native->Data = value;
             }
-        } 
+        }
 
         public ENetPeer(NativeENetPeer* peer)
         {

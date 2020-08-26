@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Runtime.InteropServices;
+
+using ENet.Managed.Checksums;
 using ENet.Managed.Common;
-using ENet.Managed.Native;
 using ENet.Managed.Compressors;
 using ENet.Managed.Internal;
-using ENet.Managed.Checksums;
+using ENet.Managed.Native;
 
 namespace ENet.Managed
 {
@@ -32,16 +33,19 @@ namespace ENet.Managed
         private ENetInterceptCallback? m_InterceptCallback;
 
         // Unsafe native pointers to fields of actual ENetHost struct
-        private IntPtr* m_pInterceptCallback;
-        private IntPtr* m_pChecksumCallback;
-        private uint* m_pTotalSentData;
-        private uint* m_pTotalSentPackets;
-        private uint* m_pTotalReceivedData;
-        private uint* m_pTotalReceivedPackets;
-        private NativeENetAddress* m_pReceivedAddress;
-        private IntPtr* m_pReceivedData;
-        private UIntPtr* m_pReceivedDataLength;
-        private UIntPtr* m_pConnectedPeers;
+        private readonly IntPtr* m_pInterceptCallback;
+        private readonly IntPtr* m_pChecksumCallback;
+        private readonly uint* m_pTotalSentData;
+        private readonly uint* m_pTotalSentPackets;
+        private readonly uint* m_pTotalReceivedData;
+        private readonly uint* m_pTotalReceivedPackets;
+        private readonly NativeENetAddress* m_pReceivedAddress;
+        private readonly IntPtr* m_pReceivedData;
+        private readonly UIntPtr* m_pReceivedDataLength;
+        private readonly UIntPtr* m_pConnectedPeers;
+        private readonly UIntPtr* m_pDuplicatePeers;
+        private readonly UIntPtr* m_pPeerCount;
+        internal readonly NativeENetPeer* PeersStartPtr;
 
         /// <summary>
         /// Gets current in-use (custom) compressor
@@ -176,6 +180,40 @@ namespace ENet.Managed
         }
 
         /// <summary>
+        /// Maximum number of Peers that can connect with same IP.
+        /// </summary>
+        public int DuplicatePeers
+        {
+            get
+            {
+                CheckDispose();
+                return unchecked((int)(*m_pDuplicatePeers));
+            }
+            set
+            {
+                CheckDispose();
+                *m_pDuplicatePeers = new UIntPtr(unchecked((uint)value));
+            }
+        }
+
+        /// <summary>
+        /// Number of peers allocated.
+        /// </summary>
+        public int PeersCount
+        {
+            get
+            {
+                CheckDispose();
+                return unchecked((int)(*m_pPeerCount));
+            }
+        }
+
+        /// <summary>
+        /// List of all allocated and pre-allocated peers by this host.
+        /// </summary>
+        public ENetHostPeerList PeerList { get; }
+
+        /// <summary>
         /// Instantiates <see cref="ENetHost"/> by creating native ENet host 
         /// </summary>
         /// <param name="address">The address at which other peers may connect to this host. If null, then no peers may connect to the host.</param>
@@ -217,6 +255,11 @@ namespace ENet.Managed
             m_pReceivedData = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataOffset);
             m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataLengthOffset);
             m_pConnectedPeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ConnectedPeersOffset);
+            m_pDuplicatePeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.DuplicatePeers);
+            m_pPeerCount = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.PeerCountOffset);
+
+            PeersStartPtr = (NativeENetPeer*)IntPtr.Add(m_Pointer, ENetHostOffset.PeersOffset);
+            PeerList = new ENetHostPeerList(this);
         }
 
         /// <summary>
@@ -550,7 +593,7 @@ namespace ENet.Managed
             }
         }
 
-        private void CheckDispose()
+        internal void CheckDispose()
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(ENetHost));

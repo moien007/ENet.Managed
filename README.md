@@ -1,6 +1,7 @@
-![Discord](https://img.shields.io/discord/728246944765313075?label=discord)
-![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)
-![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)
+[![Discord](https://img.shields.io/discord/728246944765313075?label=discord)](https://discord.gg/38UqCVC)
+[![ENet version](https://img.shields.io/badge/enet-1.3.15-green)](https://github.com/lsalzman/enet/commit/e55d226969300fbd3f1308afd8bf69e423012f2e)
+[![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)][nuget]
+[![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)][nuget]
 [![Build status](https://ci.appveyor.com/api/projects/status/p8v29k0jxaud33ec/branch/master?svg=true)](https://ci.appveyor.com/project/moien007/enet-managed/branch/master)
 
 ## ENet.Managed
@@ -10,7 +11,7 @@
 Take a look at **examples** folder.
 
 # Features
-* Supports **AnyCPU** target
+* Supports **AnyCPU** targets
 * It's cross-platform via .NET Standard
 * It's available via NuGet package manager. ([Here][nuget])
 * You can set custom
@@ -35,16 +36,18 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 ### Windows 
 * [X] X86
 * [X] X86_64
-* [ ] ARM32
+* [X] ARM32
 ### Linux 
 * [X] X86
 * [X] X86_64
 * [X] ARM32
-* [ ] ARM64
+* [X] ARM64
 ### MacOS
 * [ ] X64
 
 > You can contribute by providing **clean** binaries for unsupported platforms. 
+
+> Linux binaries are statically linked with **[MUSL](https://www.musl-libc.org/faq.html)**
 
 # Notes
 * This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior by manually initializing ENet using <code>LibENet</code> class.

@@ -118,19 +118,25 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="libenet_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\binaries\libenet.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="enet-linux-arm" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-linux-arm.so;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="libenet_64" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\binaries\libenet64.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="enet-linux-arm64" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-linux-arm64.so;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="libenet_ARM_so" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\binaries\libenet_ARM.so.7.0.1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="enet-linux-x86" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-linux-x86.so;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="libenet_X64_so" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\binaries\libenet_X64.so.7.0.1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="enet-linux-x86-64" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-linux-x86-64.so;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="libenet_X86_so" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\..\binaries\libenet_X86.so.7.0.1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="enet-win32-arm" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-win32-arm.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="enet-win32-x86" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-win32-x86.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="enet-win32-x86-64" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\binaries\enet-win32-x86-64.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

@@ -1,4 +1,5 @@
 ﻿using System;
+
 using ENet.Managed.Common;
 
 namespace ENet.Managed.Checksums

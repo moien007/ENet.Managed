@@ -1,6 +1,7 @@
-﻿using ENet.Managed.Internal;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+
+using ENet.Managed.Internal;
 
 namespace ENet.Managed.Platforms
 {
@@ -11,13 +12,16 @@ namespace ENet.Managed.Platforms
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return ENetBinariesResource.libenet_X86_so;
+                    return ENetBinariesResource.enet_linux_x86;
 
                 case Architecture.X64:
-                    return ENetBinariesResource.libenet_X64_so;
+                    return ENetBinariesResource.enet_linux_x86_64;
 
                 case Architecture.Arm:
-                    return ENetBinariesResource.libenet_ARM_so;
+                    return ENetBinariesResource.enet_linux_arm;
+
+                case Architecture.Arm64:
+                    return ENetBinariesResource.enet_linux_arm64;
 
                 default:
                     ThrowHelper.ThrowCurrentArchitectureNotSupportedYet();
@@ -30,13 +34,16 @@ namespace ENet.Managed.Platforms
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return "libenet_X86.so.7.0.1";
+                    return "enet-linux-x86.so";
 
                 case Architecture.X64:
-                    return "libenet_X64.so.7.0.1";
+                    return "enet-linux-x86-64.so";
 
                 case Architecture.Arm:
-                    return "libenet_ARM.so.7.0.1";
+                    return "enet-linux-arm.so";
+
+                case Architecture.Arm64:
+                    return "enet-linux-arm64.so";
 
                 default:
                     ThrowHelper.ThrowCurrentArchitectureNotSupportedYet();

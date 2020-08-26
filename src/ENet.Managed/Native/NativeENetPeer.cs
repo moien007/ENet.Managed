@@ -57,10 +57,11 @@ namespace ENet.Managed.Native
         public NativeENetList Acknowledgements;
         public NativeENetList SentReliableCommands;
         public NativeENetList SentUnreliableCommands;
-        public NativeENetList OutgoingReliableCommands;
-        public NativeENetList OutgoingUnreliableCommands;
+        public NativeENetList OutgoingCommands;
         public NativeENetList DispatchedCommands;
-        public int NeedsDispatch;
+        public ushort Flags;
+        public byte RoundTripTimeRemainder;
+        public byte RoundTripTimeVarianceRemainder;
         public ushort IncomingUnsequencedGroup;
         public ushort OutgoingUnsequencedGroup;
         public fixed uint UnsequencedWindow[LibENet.PeerUnsqeuencedWindowSize / 32];

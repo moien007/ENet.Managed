@@ -16,7 +16,7 @@ namespace ENet.Managed.Allocators
             // Singleton
         }
 
-        public override IntPtr Allocate(int size) 
+        public override IntPtr Allocate(int size)
         {
             return Marshal.AllocHGlobal(size);
         }

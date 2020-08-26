@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+
 using ENet.Managed.Allocators;
 using ENet.Managed.Internal;
 using ENet.Managed.Native;
@@ -18,7 +19,7 @@ namespace ENet.Managed
     {
         private static ENetAllocator? s_Allocator;
         private static Version? s_LinkedVersion;
-        
+
         // We hold this delegates references in a static variable
         // in order to prevent garbage collector to collect them
         private static readonly ENetMemoryAllocCallback s_MemAllocDelegate;
@@ -63,7 +64,7 @@ namespace ENet.Managed
             Started = false;
             s_LinkedVersion = null;
             s_Allocator = null;
-            
+
             s_MemAllocDelegate = MemAllocCallback;
             s_MemFreeDelegate = MemFreeCallback;
             s_NoMemoryDelegate = NoMemoryCallback;
@@ -92,7 +93,7 @@ namespace ENet.Managed
             }
             else
             {
-                s_Allocator = allocator; 
+                s_Allocator = allocator;
 
                 NativeENetCallbacks callbacks = new NativeENetCallbacks();
                 callbacks.Malloc = Marshal.GetFunctionPointerForDelegate(s_MemAllocDelegate);
@@ -124,7 +125,7 @@ namespace ENet.Managed
             s_Allocator = null;
         }
 
-        private static void NoMemoryCallback() => throw new OutOfMemoryException("ENet rans out of memory");
+        private static void NoMemoryCallback() => throw new OutOfMemoryException("ENet ran out of memory.");
         private static IntPtr MemAllocCallback(UIntPtr size)
         {
             var allocator = s_Allocator!;

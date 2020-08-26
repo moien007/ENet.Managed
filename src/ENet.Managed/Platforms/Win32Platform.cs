@@ -1,20 +1,24 @@
-using ENet.Managed.Internal;
 using System;
 using System.Runtime.InteropServices;
+
+using ENet.Managed.Internal;
 
 namespace ENet.Managed.Platforms
 {
     public sealed class Win32Platform : Platform
     {
-        public override string GetENetBinaryName()
+        public override byte[] GetENetBinaryBytes()
         {
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return "libenet_X64.dll";
+                    return ENetBinariesResource.enet_win32_x86;
 
                 case Architecture.X64:
-                    return "libenet_X86.dll";
+                    return ENetBinariesResource.enet_win32_x86_64;
+
+                case Architecture.Arm:
+                    return ENetBinariesResource.enet_win32_arm;
 
                 default:
                     ThrowHelper.ThrowCurrentArchitectureNotSupportedYet();
@@ -22,15 +26,18 @@ namespace ENet.Managed.Platforms
             }
         }
 
-        public override byte[] GetENetBinaryBytes()
+        public override string GetENetBinaryName()
         {
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return ENetBinariesResource.libenet_32;
+                    return "enet-win32-x86.dll";
 
                 case Architecture.X64:
-                    return ENetBinariesResource.libenet_64;
+                    return "enet-win32-x86-64.dll";
+
+                case Architecture.Arm:
+                    return "enet-win32-arm.dll";
 
                 default:
                     ThrowHelper.ThrowCurrentArchitectureNotSupportedYet();
