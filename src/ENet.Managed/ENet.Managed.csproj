@@ -6,6 +6,8 @@
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     
     <!--CS1591 warns us to comment every publicly accessible method\field\property, in future we may remove it-->
     <!--CA2101 warns us to specifiy string encoding for every P\Invoke definition which I find it annoying-->
@@ -38,6 +40,10 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ENetBinariesResource.resx"/>
   </ItemGroup>
   
 </Project>
