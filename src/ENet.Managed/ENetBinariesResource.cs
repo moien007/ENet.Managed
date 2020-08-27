@@ -39,7 +39,11 @@ internal class ENetBinariesResource {
     internal static global::System.Resources.ResourceManager ResourceManager {
         get {
             if (object.ReferenceEquals(resourceMan, null)) {
+#if NET45
+                global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ENet.Managed.ENetBinariesResource", typeof(ENetBinariesResource).Assembly);
+#else
                 global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ENetBinariesResource", typeof(ENetBinariesResource).Assembly);
+#endif
                 resourceMan = temp;
             }
             return resourceMan;
