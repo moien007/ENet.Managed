@@ -12,10 +12,9 @@ namespace ENet.Managed.Platforms
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return ENetBinariesResource.enet_win32_x86;
-
                 case Architecture.X64:
-                    return ENetBinariesResource.enet_win32_x86_64;
+                    return Environment.Is64BitProcess ? ENetBinariesResource.enet_win32_x86_64 :
+                                                        ENetBinariesResource.enet_win32_x86;
 
                 case Architecture.Arm:
                     return ENetBinariesResource.enet_win32_arm;
@@ -31,10 +30,8 @@ namespace ENet.Managed.Platforms
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X86:
-                    return "enet-win32-x86.dll";
-
                 case Architecture.X64:
-                    return "enet-win32-x86-64.dll";
+                    return Environment.Is64BitProcess ? "enet-win32-x86-64.dll" : "enet-win32-x86.dll";
 
                 case Architecture.Arm:
                     return "enet-win32-arm.dll";
