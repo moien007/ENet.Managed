@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\ENet.Managed\ENet.Managed.csproj" />
+    <ProjectReference Include="..\..\src\ENet.Managed\ENet.Managed.csproj" />
   </ItemGroup>
 
 </Project>
