@@ -5,7 +5,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/p8v29k0jxaud33ec/branch/master?svg=true)](https://ci.appveyor.com/project/moien007/enet-managed/branch/master)
 
 ## ENet.Managed
-**ENet** is cross-platform reliable UDP networking library written in C and **ENet.Managed** is an unofficial, managed wrapper for ENet available for specific set of platforms. You can checkout ENet's repo [here][enet-repo].
+**ENet** is cross-platform reliable UDP networking library written in **C** and **ENet.Managed** is an unofficial, managed wrapper for **ENet** available for **.NET** and it supports specific set of platforms. You can checkout ENet's repo **[here][enet-repo]**.
 
 # Quick start (Usage)
 Take a look at **examples** folder.
@@ -14,7 +14,7 @@ Take a look at **examples** folder.
 * Supports **AnyCPU** targets
 * It's cross-platform via .NET Standard
 * It's available via NuGet package manager. ([Here][nuget])
-* You can set custom
+* You can set custom:
   * compression method (not enabled by default, recommended to specify a compressor using <code>CompressWith*</code>)
   * checksum algorithm (not enabled by default, recommended to specify a checksum using <code>ChecksumWith*</code>)
   * heap allocator (by default ManagedENet forces ENet to use a custom allocator which is faster than malloc, take a look at <code>ENetManagedAllocator.cs</code>)
@@ -22,7 +22,7 @@ Take a look at **examples** folder.
 * Provides nearly all features of ENet via managed API.
 
 # Benchmarks
-You can see how ENet performs compared to other libraries by taking look at [here][benchmark].<br/>
+You can see how ENet performs compared to other libraries by taking look at **[these][benchmark]** benchmarks.<br/>
 Benchmarks for the wrapper itself are not available yet but it should have near native performance when optimizations are enabled.
 
 # Supported frameworks
@@ -33,21 +33,15 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 * [X] 2.1
 
 # Supported platfroms
-### Windows 
-* [X] X86
-* [X] X86_64
-* [X] ARM32
-### Linux 
-* [X] X86
-* [X] X86_64
-* [X] ARM32
-* [X] ARM64
-### MacOS
-* [ ] X64
+| Platform\Arch | X86 | X86_64 | ARM32 | ARM64 |
+|:-------------:|:---:|:------:|:-----:|:-----:|
+|    Windows    | Yes |   Yes  |  Yes  |   -   |
+|     Linux     | Yes |   Yes  |  Yes  |  Yes  |
+|      Mac      |  -  |   No   |   -   |   -   |
 
 > You can contribute by providing **clean** binaries for unsupported platforms. 
 
-> Linux binaries are statically linked with **[MUSL](https://www.musl-libc.org/faq.html)**
+> Linux binaries are statically linked against **[MUSL](https://www.musl-libc.org/faq.html)**.
 
 # Notes
 * This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior by manually initializing ENet using <code>LibENet</code> class.
@@ -56,6 +50,7 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 * In case of consuming custom version of ENet you have to sync the data structures offsets with the wrapper. 
 * <code>ENetPeer.DisconnectNow</code> method will not generate <code>ENetEventType.Disconnect</code>.
 * If you use <code>SetUserData</code> extension methods you have to call <code>UnsetUserData</code> when you done, otherwise memory leak will happen.
+* You can use <code>ENetPooledAllocator</code> in case if you want to make ENet use pooled buffers to reduce allocations.
 
 # Contribution
 You can contribute by reporting bugs and making pull requests.
