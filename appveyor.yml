@@ -1,17 +1,12 @@
 version: 4.2.{build}-alpha
 image: Visual Studio 2019
-dotnet_csproj:
-  patch: true
-  file: 'src/ENet.Managed/ENet.Managed.csproj'
-  package_version: '{version}'
-  assembly_version: '{version}'
 build_script:
 - cmd: >-
     dotnet restore
 
     dotnet build ENet.Managed.sln -c Release -o build-output
 
-    dotnet pack src\ENet.Managed\ENet.Managed.csproj -c Release -o nuget-packs
+    dotnet pack src\ENet.Managed\ENet.Managed.csproj -c Release -o nuget-packs -p:PackageVersion={version}
 test_script:
 - cmd: dotnet test ENet.Managed.sln -c Debug
 artifacts:

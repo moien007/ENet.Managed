@@ -19,11 +19,6 @@
       A cross-platform managed wrapper for ENet UDP Networking library.
       Platforms: Win32/64, ARM; Linux X86/64, ARM32/64.
     </Description>
-
-    <!-- AppVeyor will take care of patching this versions -->
-    <AssemblyVersion>0.0.0</AssemblyVersion>
-    <PackageVersion>0.0.0</PackageVersion>
-
     <PackageProjectUrl>https://github.com/moien007/ENet.Managed</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/moien007/ENet.Managed/blob/master/LICENSE</PackageLicenseUrl>
     <PackageReleaseNotes>
