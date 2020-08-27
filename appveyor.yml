@@ -4,9 +4,9 @@ build_script:
 - cmd: >-
     dotnet restore
 
-    dotnet build ENet.Managed.sln -c Release -o build-output
+    dotnet build ENet.Managed.sln -c Release -o build-output -nologo
 
-    dotnet pack src\ENet.Managed\ENet.Managed.csproj -c Release -o nuget-packs -p:PackageVersion=%APPVEYOR_BUILD_VERSION%
+    dotnet pack src\ENet.Managed\ENet.Managed.csproj -c Release -o nuget-packs -p:PackageVersion=%APPVEYOR_BUILD_VERSION% -nologo
 test_script:
 - cmd: dotnet test ENet.Managed.sln -c Debug
 artifacts:
