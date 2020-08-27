@@ -3,7 +3,6 @@ image: Visual Studio 2019
 dotnet_csproj:
   patch: true
   file: 'src/ENet.Managed/ENet.Managed.csproj'
-  version: '{version}'
   package_version: '{version}'
   assembly_version: '{version}'
 build_script:
