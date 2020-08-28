@@ -258,7 +258,7 @@ namespace ENet.Managed
             m_pDuplicatePeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.DuplicatePeers);
             m_pPeerCount = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.PeerCountOffset);
 
-            PeersStartPtr = (NativeENetPeer*)IntPtr.Add(m_Pointer, ENetHostOffset.PeersOffset);
+            PeersStartPtr = (NativeENetPeer*)Marshal.ReadIntPtr(IntPtr.Add(m_Pointer, ENetHostOffset.PeersOffset));
             PeerList = new ENetHostPeerList(this);
         }
 
