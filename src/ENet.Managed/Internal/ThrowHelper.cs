@@ -5,6 +5,12 @@ namespace ENet.Managed.Internal
 {
     internal static class ThrowHelper
     {
+        public static void ThrowIfArgumentNull<T>(T arg, string argName) where T : class
+        {
+            if (arg == null)
+                throw new ArgumentNullException(argName);
+        }
+
         public static void ThrowCurrentArchitectureNotSupportedYet()
         {
             throw new PlatformNotSupportedException($"Architecture {RuntimeInformation.OSArchitecture} is not supported yet on current platform.");

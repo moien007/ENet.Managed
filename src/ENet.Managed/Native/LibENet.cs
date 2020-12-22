@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using ENet.Managed.Internal;
 using ENet.Managed.Platforms;
+
+#nullable disable // Notice!
 
 namespace ENet.Managed.Native
 {
@@ -144,10 +148,20 @@ namespace ENet.Managed.Native
         public delegate void PeerTimeoutDelegate(NativeENetPeer* peer, uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum);
         public static PeerTimeoutDelegate PeerTimeout { get; private set; }
 
+        enum LoadMode
+        {
+            NotLoaded,
+            FromResource,
+            CustomFile,
+            CustomHandle,
+        }
+
+        private static LoadMode s_LoadMode = LoadMode.NotLoaded;
+
         /// <summary>
         /// Current loaded ENet dynamic library path
         /// </summary>
-        public static string Path { get; set; }
+        public static string Path { get; set; } = GetTemporaryModulePath();
 
         /// <summary>
         /// Current loaded ENet dynamic library handle
@@ -157,19 +171,20 @@ namespace ENet.Managed.Native
         /// <summary>
         /// Indicates whether ENet dynamic libray is loaded or not
         /// </summary>
-        public static bool IsLoaded { get; private set; } = false;
+        public static bool IsLoaded { get; } = s_LoadMode != LoadMode.NotLoaded;
 
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        static LibENet()
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        {
-            var dllName = Platform.Current.GetENetBinaryName();
-            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "enet_managed_resource", dllName);
-        }
-
+        /// <summary>
+        /// Tries to delete ENet module.
+        /// </summary>
+        /// <remarks>
+        /// This method only tries to delete the module if it was loaded from resources.
+        /// </remarks>
+        /// <returns>Return true if the delete operation was successful; otherwise false.</returns>
         public static bool TryDelete()
         {
-            if (IsLoaded) return false;
+            if (s_LoadMode != LoadMode.FromResource) 
+                return false;
+
             try
             {
                 File.Delete(Path);
@@ -181,27 +196,70 @@ namespace ENet.Managed.Native
             }
         }
 
+        /// <summary>
+        /// Unloads ENet module if loaded.
+        /// </summary>
         public static void Unload()
         {
-            if (!IsLoaded) return;
-            Deinitialize();
-            Platform.Current.FreeDynamicLibrary(Handle);
+            if (IsLoaded == false)
+                return;
+
+            try
+            {
+                Deinitialize?.Invoke();
+
+                Platform.Current.FreeDynamicLibrary(Handle);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Got exception {ex.GetType().Name} when deinitializing and freeing ENet library.");
+            }
+
             Handle = IntPtr.Zero;
-            IsLoaded = false;
+            Path = string.Empty;
+            s_LoadMode = LoadMode.NotLoaded;
         }
 
+        /// <summary>
+        /// Loads appropriate ENet module for the current OS from resources.
+        /// </summary>
+        [Obsolete("Consider using " + nameof(ENetStartupOptions))]
         public static void Load()
         {
             if (IsLoaded) return;
+
             try
             {
-                Load(false);
+                LoadModuleFromResource(overwrite: false);
             }
             catch
             {
-                Load(true);
+                LoadModuleFromResource(overwrite: true);
             }
-            IsLoaded = true;
+        }
+
+        /// <summary>
+        /// Loads ENet from the given library handle.
+        /// </summary>
+        /// <param name="dllHandle">The DLL handle.</param>
+        [Obsolete("Consider using " + nameof(ENetStartupOptions))]
+        public static void Load(IntPtr dllHandle)
+        {
+            if (IsLoaded) return;
+
+            LoadModuleFromHandle(dllHandle);
+        }
+
+        /// <summary>
+        /// Load ENet from the given shared library path.
+        /// </summary>
+        /// <param name="dllFile">The DLL file path.</param>
+        [Obsolete("Consider using " + nameof(ENetStartupOptions))]
+        public static void Load(string dllFile)
+        {
+            if (IsLoaded) return;
+
+            LoadModuleFromFile(dllFile);
         }
 
         public static T GetProc<T>(string procName)
@@ -222,10 +280,69 @@ namespace ENet.Managed.Native
             return address;
         }
 
-        static void Load(bool overwrite)
+        static void LoadModuleFromResource(bool overwrite)
         {
-            LoadDll(overwrite);
+            var path = GetTemporaryModulePath();
 
+            if (!File.Exists(path) || overwrite)
+            {
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+                File.WriteAllBytes(path, Platform.Current.GetENetBinaryBytes());
+            }
+
+            Handle = LoadDllFromFile(path);
+            Path = path;
+
+            try
+            {
+                LoadModuleProcs();
+                s_LoadMode = LoadMode.FromResource;
+            }
+            catch
+            {
+                Handle = IntPtr.Zero;
+                Path = null;
+                throw;
+            }
+        }
+
+        static void LoadModuleFromHandle(IntPtr handle)
+        {
+            Handle = handle;
+
+            try
+            {
+                LoadModuleProcs();
+                s_LoadMode = LoadMode.CustomHandle;
+            }
+            catch
+            {
+                Handle = IntPtr.Zero;
+                Path = null;
+                throw;
+            }
+        }
+
+        static void LoadModuleFromFile(string path)
+        {
+            Handle = LoadDllFromFile(path);
+            Path = string.Empty;
+
+            try
+            {
+                LoadModuleProcs();
+                s_LoadMode = LoadMode.CustomFile;
+            }
+            catch
+            {
+                Handle = IntPtr.Zero;
+                Path = null;
+                throw;
+            }
+        }
+
+        static void LoadModuleProcs()
+        {
             Initialize = GetProc<InitializeDelegate>("enet_initialize");
             InitializeWithCallbacks = GetProc<InitializeWithCallbacksDelegate>("enet_initialize_with_callbacks");
             Deinitialize = GetProc<DeinitializeDelegate>("enet_deinitialize");
@@ -266,20 +383,19 @@ namespace ENet.Managed.Native
             PeerTimeout = GetProc<PeerTimeoutDelegate>("enet_peer_timeout");
         }
 
-        static void LoadDll(bool overwrite)
+        static IntPtr LoadDllFromFile(string path)
         {
-            if (Handle != IntPtr.Zero)
-                Platform.Current.FreeDynamicLibrary(Handle);
-
-            if (!File.Exists(Path) || overwrite)
-            {
-                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
-                File.WriteAllBytes(Path, Platform.Current.GetENetBinaryBytes());
-            }
-
-            Handle = Platform.Current.LoadDynamicLibrary(Path);
-            if (Handle == IntPtr.Zero)
+            var handle = Platform.Current.LoadDynamicLibrary(path);
+            if (handle == IntPtr.Zero)
                 ThrowHelper.ThrowENetLibraryLoadFailed();
+            
+            return handle;
+        }
+
+        static string GetTemporaryModulePath()
+        {
+            var dllName = Platform.Current.GetENetBinaryName();
+            return System.IO.Path.Combine(System.IO.Path.GetTempPath(), "enet_managed_resource", dllName);
         }
     }
 }

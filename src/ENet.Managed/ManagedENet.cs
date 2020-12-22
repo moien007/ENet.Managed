@@ -5,6 +5,8 @@ using ENet.Managed.Allocators;
 using ENet.Managed.Internal;
 using ENet.Managed.Native;
 
+#pragma warning disable CS0618 // For suppressing LibENet.Load(..) warnings
+
 namespace ENet.Managed
 {
     /// <summary>
@@ -71,15 +73,43 @@ namespace ENet.Managed
         }
 
         /// <summary>
-        /// Initializes ENEt with specified memory allocator
+        /// Initializes ENet with specified memory allocator
         /// </summary>
         /// <param name="allocator">If this parameter receives null ENet will use its own heap allocator.</param>
         public static void Startup(ENetAllocator? allocator = null)
         {
+            var startupOptions = new ENetStartupOptions();
+            startupOptions.Allocator = allocator;
+            Startup(startupOptions);
+        }
+
+        /// <summary>
+        /// Initializes ENet with given startup options.
+        /// </summary>
+        /// <param name="startupOptions">The startup options.</param>
+        public static void Startup(ENetStartupOptions startupOptions)
+        {
+            ThrowHelper.ThrowIfArgumentNull(startupOptions, nameof(startupOptions));
+            startupOptions.CheckValues();
+
+            var allocator = startupOptions.Allocator;
+
             if (Started) return;
             Started = true;
 
-            LibENet.Load();
+            if (startupOptions.ModulePath != null)
+            {
+                LibENet.Load(startupOptions.ModulePath);
+            }
+            else if (startupOptions.ModuleHandle != IntPtr.Zero)
+            {
+                LibENet.Load(startupOptions.ModuleHandle);
+            }
+            else
+            {
+                // Load from resource
+                LibENet.Load();
+            }
 
             var linkedVer = LibENet.LinkedVersion();
             s_LinkedVersion = new Version((int)(((linkedVer) >> 16) & 0xFF),
@@ -106,12 +136,13 @@ namespace ENet.Managed
         }
 
         /// <summary>
-        /// Shutdowns and unloads ENet dynamic library
+        /// Shutdowns and unloads ENet's library
         /// </summary>
         /// <param name="delete">Specifies the ENet dynamic library should be removed or not</param>
         /// <remarks>
         /// Any interaction with ENet managed wrapper instances like <see cref="ENetHost"/> should be avoided
-        /// after calling this method
+        /// after calling this method.
+        /// Parameter 'delete' is only considered when the library is loaded from the resources.
         /// </remarks>
         public static void Shutdown(bool delete = true)
         {

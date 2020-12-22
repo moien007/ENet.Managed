@@ -19,18 +19,13 @@
     <RepositoryUrl>https://github.com/moien007/ENet.Managed</RepositoryUrl>
     <Description>
       A cross-platform managed wrapper for ENet UDP Networking library.
-      Platforms: Win32/64, ARM; Linux X86/64, ARM32/64.
+      Platforms: Win32/64|ARM64 - Linux X86/64|ARM32/64.
     </Description>
     <PackageProjectUrl>https://github.com/moien007/ENet.Managed</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/moien007/ENet.Managed/blob/master/LICENSE</PackageLicenseUrl>
     <PackageReleaseNotes>
-      - Upgraded to ENet 1.3.15
-      - Added support for ARM32 on Win32
-      - Added support for ARM64 on Linux
-      - HOTFIX: Fixed Linux ENetHost offsets
-      - Added ENetHostPeerList class
-      - Added IENetEventListener interface
-      - Added ENetHost.DuplicatePeers property
+      - Introduced ENetStartupOptions
+      - Allowing custom ENet versions.
     </PackageReleaseNotes>
   </PropertyGroup>
 
