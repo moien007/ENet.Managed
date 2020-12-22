@@ -94,7 +94,7 @@ namespace ENet.Managed
             ThrowIfNull();
 
             if (packet.IsNull)
-                throw new ArgumentNullException(nameof(ENetPacket));
+                throw new ArgumentNullException(nameof(packet));
 
             if (LibENet.PeerSend(m_Native, channelId, packet.GetNativePointer()) < 0)
                 ThrowHelper.ThrowENetPeerSendFailed();

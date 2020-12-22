@@ -21,7 +21,7 @@ namespace ENet.Managed
         private static readonly ENetSentinelCompressor s_RangeCoderCompressor = new ENetSentinelCompressor();
 
         // Native pointer to ENetHost struct
-        private IntPtr m_Pointer;
+        private readonly IntPtr m_Pointer;
 
         private ENetChecksum? m_Checksum;
         private ENetCompressor? m_Compressor;
@@ -338,10 +338,10 @@ namespace ENet.Managed
             CheckDispose();
 
             if (incomingBandwidth < uint.MinValue || incomingBandwidth > uint.MaxValue)
-                throw new ArgumentOutOfRangeException("incomingBandwidth");
+                throw new ArgumentOutOfRangeException(nameof(incomingBandwidth));
 
             if (outgoingBandwidth < uint.MinValue || outgoingBandwidth > uint.MaxValue)
-                throw new ArgumentOutOfRangeException("outgoingBandwidth");
+                throw new ArgumentOutOfRangeException(nameof(outgoingBandwidth));
 
             LibENet.HostBandwidthLimit(m_Pointer, unchecked((uint)incomingBandwidth), unchecked((uint)outgoingBandwidth));
         }
@@ -482,15 +482,12 @@ namespace ENet.Managed
         {
             CheckDispose();
 
-            if (checksum == null)
-                throw new ArgumentNullException(nameof(checksum));
-
             if (m_Checksum != null)
             {
                 DisableChecksum();
             }
 
-            m_Checksum = checksum;
+            m_Checksum = checksum ?? throw new ArgumentNullException(nameof(checksum));
 
             m_ChecksumCallback = (buffers, buffersCount) =>
             {
@@ -547,13 +544,10 @@ namespace ENet.Managed
         {
             CheckDispose();
 
-            if (callback == null)
-                throw new ArgumentNullException(nameof(callback));
-
             if (m_InterceptCallback != null)
                 DisableInterception();
 
-            m_InterceptCallback = callback;
+            m_InterceptCallback = callback ?? throw new ArgumentNullException(nameof(callback));
             *m_pInterceptCallback = Marshal.GetFunctionPointerForDelegate(callback);
         }
 

@@ -35,13 +35,17 @@ namespace UnitTests
         [Test]
         public void DispatchToListenerTest()
         {
+            ENetEvent ev;
+
             var listener = new Listener();
-            var ev = default(ENetEvent);
 
             void setEvent(ENetEventType type)
             {
-                var native = new NativeENetEvent();
-                native.Type = type;
+                var native = new NativeENetEvent
+                {
+                    Type = type
+                };
+
                 ev = new ENetEvent(native);
             }
 

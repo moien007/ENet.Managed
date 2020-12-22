@@ -78,8 +78,11 @@ namespace ENet.Managed
         /// <param name="allocator">If this parameter receives null ENet will use its own heap allocator.</param>
         public static void Startup(ENetAllocator? allocator = null)
         {
-            var startupOptions = new ENetStartupOptions();
-            startupOptions.Allocator = allocator;
+            var startupOptions = new ENetStartupOptions
+            {
+                Allocator = allocator
+            };
+
             Startup(startupOptions);
         }
 
@@ -125,10 +128,12 @@ namespace ENet.Managed
             {
                 s_Allocator = allocator;
 
-                NativeENetCallbacks callbacks = new NativeENetCallbacks();
-                callbacks.Malloc = Marshal.GetFunctionPointerForDelegate(s_MemAllocDelegate);
-                callbacks.Free = Marshal.GetFunctionPointerForDelegate(s_MemFreeDelegate);
-                callbacks.NoMemory = Marshal.GetFunctionPointerForDelegate(s_NoMemoryDelegate);
+                NativeENetCallbacks callbacks = new NativeENetCallbacks
+                {
+                    Malloc = Marshal.GetFunctionPointerForDelegate(s_MemAllocDelegate),
+                    Free = Marshal.GetFunctionPointerForDelegate(s_MemFreeDelegate),
+                    NoMemory = Marshal.GetFunctionPointerForDelegate(s_NoMemoryDelegate)
+                };
 
                 if (LibENet.InitializeWithCallbacks(linkedVer, &callbacks) != 0)
                     ThrowHelper.ThrowENetInitializationFailed();
