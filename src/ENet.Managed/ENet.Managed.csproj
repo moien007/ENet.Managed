@@ -30,15 +30,19 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="[4.0,5.0)" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Memory" Version="[4.5,5.0)" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="ENetBinariesResource.resx"/>
+    <EmbeddedResource Include="ENetBinariesResource.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Async\" />
   </ItemGroup>
   
 </Project>
