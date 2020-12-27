@@ -39,9 +39,6 @@ namespace ENet.Managed
         private readonly uint* m_pTotalSentPackets;
         private readonly uint* m_pTotalReceivedData;
         private readonly uint* m_pTotalReceivedPackets;
-        private readonly NativeENetAddress* m_pReceivedAddress;
-        private readonly IntPtr* m_pReceivedData;
-        private readonly UIntPtr* m_pReceivedDataLength;
         private readonly UIntPtr* m_pConnectedPeers;
         private readonly UIntPtr* m_pDuplicatePeers;
         private readonly UIntPtr* m_pPeerCount;
@@ -232,33 +229,32 @@ namespace ENet.Managed
             if (peers < 0 || peers > MaximumPeers)
                 throw new ArgumentOutOfRangeException(nameof(peers));
 
-            if (address != null)
-            {
-                var nativeAddress = NativeENetAddress.FromIPEndPoint(address);
-                m_Pointer = LibENet.HostCreate(&nativeAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
-            }
-            else
-            {
-                m_Pointer = LibENet.HostCreate(null, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
-            }
+            var nativeAddress = NativeENetAddress.FromIPEndPoint(address ?? new IPEndPoint(IPAddress.Any, 0));
+            m_Pointer = LibENet.HostCreate(nativeAddress.Type, &nativeAddress, (UIntPtr)peers, (UIntPtr)channels, (uint)incomingBandwidth, (uint)outgoingBandwidth);
 
             if (m_Pointer == IntPtr.Zero)
                 ThrowHelper.ThrowENetCreateHostFailed();
 
-            m_pInterceptCallback = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.InterceptOffset);
-            m_pChecksumCallback = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ChecksumOffset);
-            m_pTotalSentData = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalSentDataOffset);
-            m_pTotalSentPackets = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalSentPacketsOffset);
-            m_pTotalReceivedData = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalReceivedDataOffset);
-            m_pTotalReceivedPackets = (uint*)IntPtr.Add(m_Pointer, ENetHostOffset.TotalReceivedPacketsOffset);
-            m_pReceivedAddress = (NativeENetAddress*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedAddressOffset);
-            m_pReceivedData = (IntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataOffset);
-            m_pReceivedDataLength = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ReceivedDataLengthOffset);
-            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.ConnectedPeersOffset);
-            m_pDuplicatePeers = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.DuplicatePeers);
-            m_pPeerCount = (UIntPtr*)IntPtr.Add(m_Pointer, ENetHostOffset.PeerCountOffset);
+            // id must be in sync with interop_helpers.c
+            static int getOffset(uint id)
+            {
+                var offset = LibENet.InteropHelperSizeOrOffset(id);
+                if (offset == new IntPtr(-1))
+                    throw new ENetException("Size-or-Offset identifier mismatch.");
+                return offset.ToInt32();
+            }
 
-            PeersStartPtr = (NativeENetPeer*)Marshal.ReadIntPtr(IntPtr.Add(m_Pointer, ENetHostOffset.PeersOffset));
+            m_pInterceptCallback = (IntPtr*)IntPtr.Add(m_Pointer, getOffset(3));
+            m_pChecksumCallback = (IntPtr*)IntPtr.Add(m_Pointer, getOffset(2));
+            m_pTotalSentData = (uint*)IntPtr.Add(m_Pointer, getOffset(4));
+            m_pTotalSentPackets = (uint*)IntPtr.Add(m_Pointer, getOffset(5));
+            m_pTotalReceivedData = (uint*)IntPtr.Add(m_Pointer, getOffset(12));
+            m_pTotalReceivedPackets = (uint*)IntPtr.Add(m_Pointer, getOffset(6));
+            m_pConnectedPeers = (UIntPtr*)IntPtr.Add(m_Pointer, getOffset(7));
+            m_pDuplicatePeers = (UIntPtr*)IntPtr.Add(m_Pointer, getOffset(8));
+            m_pPeerCount = (UIntPtr*)IntPtr.Add(m_Pointer, getOffset(9));
+
+            PeersStartPtr = (NativeENetPeer*)Marshal.ReadIntPtr(IntPtr.Add(m_Pointer, getOffset(10)));
             PeerList = new ENetHostPeerList(this);
         }
 
@@ -273,12 +269,12 @@ namespace ENet.Managed
         }
 
         /// <summary>
-        /// Connects specified <see cref="IPEndPoint"/>
+        /// Connects to the specified <see cref="IPEndPoint"/>
         /// </summary>
         /// <param name="endPoint">Remote endpoint</param>
         /// <param name="channels">Maximum number of channels (can't be zero)</param>
         /// <param name="data">User data supplied to the receiving host</param>
-        /// <returns></returns>
+        /// <returns>The connecting peer</returns>
         public ENetPeer Connect(IPEndPoint endPoint, byte channels, uint data)
         {
             CheckDispose();

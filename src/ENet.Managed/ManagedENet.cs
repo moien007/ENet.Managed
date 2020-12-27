@@ -14,7 +14,7 @@ namespace ENet.Managed
     /// </summary>
     /// <remarks>
     /// The methods of this should be manually called at beginning and end 
-    /// of your application.
+    /// of your application. <br/>
     /// This class is not thread-safe.
     /// </remarks>
     public unsafe static class ManagedENet
@@ -23,7 +23,7 @@ namespace ENet.Managed
         private static Version? s_LinkedVersion;
 
         // We hold this delegates references in a static variable
-        // in order to prevent garbage collector to collect them
+        // in order to prevent garbage collector from collecting them
         private static readonly ENetMemoryAllocCallback s_MemAllocDelegate;
         private static readonly ENetMemoryFreeCallback s_MemFreeDelegate;
         private static readonly ENetNoMemoryCallback s_NoMemoryDelegate;
@@ -143,11 +143,11 @@ namespace ENet.Managed
         /// <summary>
         /// Shutdowns and unloads ENet's library
         /// </summary>
-        /// <param name="delete">Specifies the ENet dynamic library should be removed or not</param>
+        /// <param name="delete">Specifies whether the ENet dynamic library should be removed or not from disk.</param>
         /// <remarks>
         /// Any interaction with ENet managed wrapper instances like <see cref="ENetHost"/> should be avoided
-        /// after calling this method.
-        /// Parameter 'delete' is only considered when the library is loaded from the resources.
+        /// after calling this method. <br/>
+        /// Parameter <paramref name="delete"/> is only considered when the library is loaded from the resources.
         /// </remarks>
         public static void Shutdown(bool delete = true)
         {

@@ -1,7 +1,7 @@
 ﻿namespace ENet.Managed
 {
     /// <summary>
-    /// An interface event listener which receives dispatched ENet events. 
+    /// An interface that receives dispatches of ENet events.
     /// </summary>
     public interface IENetEventListener
     {

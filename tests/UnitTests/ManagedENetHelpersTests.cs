@@ -4,6 +4,8 @@ using NUnit.Framework;
 
 using static ENet.Managed.ManagedENetHelpers;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace UnitTests
 {
     [TestFixture]

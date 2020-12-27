@@ -47,7 +47,7 @@ namespace ENet.Managed
         /// </summary>
         /// <remarks>
         /// <see cref="UserData"/> differs from <see cref="Data"/>.
-        /// Its purpose is to allow you to tag the packet if needed.
+        /// It's purpose is to allow you to tag the packet if needed.
         /// </remarks>
         public IntPtr UserData
         {
@@ -163,7 +163,7 @@ namespace ENet.Managed
         /// </summary>
         /// <param name="dataLength">New data length</param>
         /// <remarks>
-        /// All <see cref="Span{T}"/>s after this will become invalid and touching them will result in memory errors
+        /// <see cref="Data"/> becomes invalid after calling this method.
         /// </remarks>
         public void Resize(int dataLength)
         {

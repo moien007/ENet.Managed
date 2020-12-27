@@ -67,9 +67,9 @@ internal class ENetBinariesResource {
     /// <summary>
     ///   Looks up a localized resource of type System.Byte[].
     /// </summary>
-    internal static byte[] enet_linux_arm {
+    internal static byte[] enet_linux_arm32 {
         get {
-            object obj = ResourceManager.GetObject("enet-linux-arm", resourceCulture);
+            object obj = ResourceManager.GetObject("enet-linux-arm32", resourceCulture);
             return ((byte[])(obj));
         }
     }
@@ -107,9 +107,9 @@ internal class ENetBinariesResource {
     /// <summary>
     ///   Looks up a localized resource of type System.Byte[].
     /// </summary>
-    internal static byte[] enet_win32_arm {
+    internal static byte[] enet_win32_arm64 {
         get {
-            object obj = ResourceManager.GetObject("enet-win32-arm", resourceCulture);
+            object obj = ResourceManager.GetObject("enet-win32-arm64", resourceCulture);
             return ((byte[])(obj));
         }
     }

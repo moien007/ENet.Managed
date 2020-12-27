@@ -1,5 +1,5 @@
 [![Discord](https://img.shields.io/discord/728246944765313075?label=discord)](https://discord.gg/38UqCVC)
-[![ENet version](https://img.shields.io/badge/enet-1.3.15-green)](https://github.com/lsalzman/enet/commit/e55d226969300fbd3f1308afd8bf69e423012f2e)
+[![ENet version](https://img.shields.io/badge/enet-1.3.17-green)](https://github.com/lsalzman/enet/commit/e55d226969300fbd3f1308afd8bf69e423012f2e)
 [![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)][nuget]
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)][nuget]
 [![Build status](https://ci.appveyor.com/api/projects/status/p8v29k0jxaud33ec/branch/master?svg=true)](https://ci.appveyor.com/project/moien007/enet-managed/branch/master)
@@ -12,6 +12,8 @@ Take a look at **examples** folder.
 
 # Features
 * Supports **AnyCPU** targets
+* Supports IPv6
+* Provides async-await interface.
 * It's cross-platform via .NET Standard
 * It's available via NuGet package manager. ([Here][nuget])
 * You can set custom:
@@ -45,6 +47,7 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 
 # Notes
 * This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior by manually initializing ENet using <code>LibENet</code> class.
+* ENet binaries are built from https://github.com/moien007/enet
 * ENet's checksum feature is disabled by default, it is highly recommended to use checksum to avoid receiving damaged packets. 
   * <code>ChecksumWithCRC32</code> enables ENet's builtin checksum feature.
 * In case of consuming custom version of ENet you have to sync the data structures offsets with the wrapper. 

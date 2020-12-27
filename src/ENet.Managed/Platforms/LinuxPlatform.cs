@@ -18,7 +18,7 @@ namespace ENet.Managed.Platforms
                     return ENetBinariesResource.enet_linux_x86_64;
 
                 case Architecture.Arm:
-                    return ENetBinariesResource.enet_linux_arm;
+                    return ENetBinariesResource.enet_linux_arm32;
 
                 case Architecture.Arm64:
                     return ENetBinariesResource.enet_linux_arm64;

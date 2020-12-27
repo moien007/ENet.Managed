@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
+using ENet.Managed.Internal;
 using ENet.Managed.Native;
 
 namespace ENet.Managed
 {
+    /// <summary>
+    /// A managed representation of <see cref="Native.NativeENetEvent"/>.
+    /// </summary>
     public readonly struct ENetEvent
     {
         public ENetEventType Type { get; }
@@ -13,7 +17,10 @@ namespace ENet.Managed
         public uint Data { get; }
         public byte ChannelId { get; }
 
-
+        /// <summary>
+        /// Initializes an <see cref="ENetEvent"/> from the given <see cref="Native.NativeENetEvent"/>.
+        /// </summary>
+        /// <param name="native"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ENetEvent(NativeENetEvent native)
         {
@@ -47,10 +54,7 @@ namespace ENet.Managed
         /// <returns>Returns true if any event disptached to listener; otherwise false.</returns>
         public bool DisptachTo(IENetEventListener listener)
         {
-            if (listener is null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
+            ThrowHelper.ThrowIfArgumentNull(listener, nameof(listener));
 
             switch (Type)
             {

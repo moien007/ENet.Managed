@@ -82,7 +82,7 @@ namespace ENet.Managed.Native
         public static HostConnectDelegate HostConnect { get; private set; }
 
         [UnmanagedFunctionPointer(ENetCallingConvention)]
-        public delegate IntPtr HostCreateDelegate(NativeENetAddress* address, UIntPtr peerCount, UIntPtr channelLimit, uint incomingBandwidth, uint outgoingBandwidth);
+        public delegate IntPtr HostCreateDelegate(ENetAddressType addressType, NativeENetAddress* address, UIntPtr peerCount, UIntPtr channelLimit, uint incomingBandwidth, uint outgoingBandwidth);
         public static HostCreateDelegate HostCreate { get; private set; }
 
         [UnmanagedFunctionPointer(ENetCallingConvention)]
@@ -146,6 +146,10 @@ namespace ENet.Managed.Native
         [UnmanagedFunctionPointer(ENetCallingConvention)]
         public delegate void PeerTimeoutDelegate(NativeENetPeer* peer, uint timeoutLimit, uint timeoutMinimum, uint timeoutMaximum);
         public static PeerTimeoutDelegate PeerTimeout { get; private set; }
+
+        [UnmanagedFunctionPointer(ENetCallingConvention)]
+        public delegate IntPtr InteropHelperSizeOrOffsetDelegate(uint id);
+        public static InteropHelperSizeOrOffsetDelegate InteropHelperSizeOrOffset { get; private set; }
 
         enum LoadMode
         {
@@ -380,6 +384,8 @@ namespace ENet.Managed.Native
             PeerSend = GetProc<PeerSendDelegate>("enet_peer_send");
             PeerThrottleConfigure = GetProc<PeerThrottleConfigureDelegate>("enet_peer_throttle_configure");
             PeerTimeout = GetProc<PeerTimeoutDelegate>("enet_peer_timeout");
+
+            InteropHelperSizeOrOffset = GetProc<InteropHelperSizeOrOffsetDelegate>("enet_interophelper_sizeoroffset");
         }
 
         static IntPtr LoadDllFromFile(string path)

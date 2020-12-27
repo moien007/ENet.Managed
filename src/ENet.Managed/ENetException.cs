@@ -3,7 +3,7 @@
 namespace ENet.Managed
 {
     /// <summary>
-    /// Reperesents an exception related to ENet
+    /// Reperesents an exception related to the (native) ENet.
     /// </summary>
     public sealed class ENetException : Exception
     {

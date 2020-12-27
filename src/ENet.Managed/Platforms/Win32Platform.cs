@@ -17,7 +17,7 @@ namespace ENet.Managed.Platforms
                                                         ENetBinariesResource.enet_win32_x86;
 
                 case Architecture.Arm:
-                    return ENetBinariesResource.enet_win32_arm;
+                    return ENetBinariesResource.enet_win32_arm64;
 
                 default:
                     ThrowHelper.ThrowCurrentArchitectureNotSupportedYet();

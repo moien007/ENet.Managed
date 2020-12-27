@@ -26,5 +26,21 @@ namespace ENet.Managed.Internal
                 list.RemoveAt(index);
             }
         }
+
+#if NET46 || NETSTANDARD2_0 // Queue<T>.TryDequeue() is missing in these frameworks
+        public static bool TryDequeue<T>(this Queue<T> queue, out T val)
+        {
+            if (queue.Count == 0)
+            {
+                val = default!;
+                return false;
+            }
+            else
+            {
+                val = queue.Dequeue();
+                return true;
+            }
+        }
+#endif
     }
 }

@@ -1,5 +1,8 @@
 ﻿namespace ENet.Managed
 {
+    /// <summary>
+    /// Peer state.
+    /// </summary>
     public enum ENetPeerState
     {
         /// <summary>

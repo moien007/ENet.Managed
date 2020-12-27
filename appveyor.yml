@@ -1,4 +1,4 @@
-version: 4.2.{build}
+version: 5.0.{build}-alpha
 image: Visual Studio 2019
 build_script:
 - cmd: >-
