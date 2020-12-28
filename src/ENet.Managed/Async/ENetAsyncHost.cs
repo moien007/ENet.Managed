@@ -83,7 +83,7 @@ namespace ENet.Managed.Async
         /// </summary>
         /// <param name="cancellationToken">Cancellation token to watch.</param>
         /// <returns>A peer that remotely connected.</returns>
-        public async ValueTask<ENetAsyncPeer> AcceptAsync(CancellationToken cancellationToken)
+        public async ValueTask<ENetAsyncPeer> AcceptAsync(CancellationToken cancellationToken = default)
         {
             try
             {
