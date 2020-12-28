@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleChatClient", "exampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "tests\TestApp\TestApp.csproj", "{081DAF63-834D-4685-9586-CE7B3AF72D91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "tests\TestApp\TestApp.csproj", "{081DAF63-834D-4685-9586-CE7B3AF72D91}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{373E6708-1D7E-43C2-B0C6-512358C7629F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{271B518D-9B9B-404F-B282-B7C02CBC70E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +46,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{632A50E8-BB35-472C-882F-7649885C5E64} = {271B518D-9B9B-404F-B282-B7C02CBC70E5}
+		{41340270-C1CB-420B-B8D1-F394C41D70BF} = {271B518D-9B9B-404F-B282-B7C02CBC70E5}
+		{4F40C5F1-994C-4635-BDE6-FEA40DB27B7D} = {373E6708-1D7E-43C2-B0C6-512358C7629F}
+		{081DAF63-834D-4685-9586-CE7B3AF72D91} = {373E6708-1D7E-43C2-B0C6-512358C7629F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CCE5A0C2-97BA-482E-BC5E-7C066026A0AA}
