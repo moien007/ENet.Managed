@@ -1,8 +1,8 @@
 [![Discord](https://img.shields.io/discord/728246944765313075?label=discord)](https://discord.gg/38UqCVC)
-[![ENet version](https://img.shields.io/badge/enet-1.3.17-green)](https://github.com/lsalzman/enet/commit/e55d226969300fbd3f1308afd8bf69e423012f2e)
+[![ENet version](https://img.shields.io/badge/enet-1.3.17-green)](https://github.com/moien007/enet)
 [![Nuget](https://img.shields.io/nuget/dt/ENet.Managed?label=downloads)][nuget]
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/ENet.Managed?label=version)][nuget]
-[![Build status](https://ci.appveyor.com/api/projects/status/p8v29k0jxaud33ec/branch/master?svg=true)](https://ci.appveyor.com/project/moien007/enet-managed/branch/master)
+[![Build status](https://img.shields.io/github/workflow/status/moien007/ENet.Managed/.NET)](https://github.com/moien007/ENet.Managed/actions)
 
 ## ENet.Managed
 **ENet** is cross-platform reliable UDP networking library written in **C** and **ENet.Managed** is an unofficial, managed wrapper for **ENet** available for **.NET** and it supports specific set of platforms. You can checkout ENet's repo **[here][enet-repo]**.
@@ -27,13 +27,6 @@ Take a look at **examples** folder.
 You can see how ENet performs compared to other libraries by taking look at **[these][benchmark]** benchmarks.<br/>
 Benchmarks for the wrapper itself are not available yet but it should have near native performance when optimizations are enabled.
 
-# Supported frameworks
-### .NET Framework
-* [X] 4.5
-### .NET Standard
-* [X] 2.0
-* [X] 2.1
-
 # Supported platfroms
 | Platform\Arch | X86 | X86_64 | ARM32 | ARM64 |
 |:-------------:|:---:|:------:|:-----:|:-----:|
@@ -41,12 +34,10 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 |     Linux     | Yes |   Yes  |  Yes  |  Yes  |
 |      Mac      |  -  |   No   |   -   |   -   |
 
-> You can contribute by providing **clean** binaries for unsupported platforms. 
-
 > Linux binaries are statically linked against **[MUSL](https://www.musl-libc.org/faq.html)**.
 
 # Notes
-* This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior by manually initializing ENet using <code>LibENet</code> class.
+* This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior using <code>ENetStartupOptions</code> or by manually initializing ENet using <code>LibENet</code> class.
 * ENet binaries are built from https://github.com/moien007/enet
 * ENet's checksum feature is disabled by default, it is highly recommended to use checksum to avoid receiving damaged packets. 
   * <code>ChecksumWithCRC32</code> enables ENet's builtin checksum feature.
