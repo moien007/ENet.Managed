@@ -44,9 +44,9 @@ namespace ENet.Managed.Internal
         }
 
         [DoesNotReturn]
-        public static void ThrowENetLibraryLoadFailed()
+        public static void ThrowENetLibraryLoadFailed(int lastError)
         {
-            throw new ENetException($"Failed to load ENet dynamic library. (Native last error: {Marshal.GetLastWin32Error()})");
+            throw new ENetException($"Failed to load ENet dynamic library. (Native last error: {lastError})");
         }
 
         [DoesNotReturn]
@@ -56,9 +56,9 @@ namespace ENet.Managed.Internal
         }
 
         [DoesNotReturn]
-        public static void ThrowENetLibraryProcNotFound(string procName)
+        public static void ThrowENetLibraryProcNotFound(string procName, int lastError)
         {
-            throw new DllNotFoundException($"Procedure '{procName}' doesn't found within ENet dynamic library.");
+            throw new DllNotFoundException($"Procedure '{procName}' doesn't found within ENet dynamic library. (LastError: {lastError})");
         }
 
         [DoesNotReturn]

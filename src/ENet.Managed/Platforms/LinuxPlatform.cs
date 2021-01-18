@@ -52,7 +52,26 @@ namespace ENet.Managed.Platforms
         }
 
         public override void FreeDynamicLibrary(IntPtr hModule) => LinuxApi.dlclose(hModule);
-        public override IntPtr LoadDynamicLibrary(string dllPath) => LinuxApi.dlopen(dllPath, LinuxApi.RTLD_NOW);
-        public override IntPtr GetDynamicLibraryProcedureAddress(IntPtr handle, string procName) => LinuxApi.dlsym(handle, procName);
+        public override IntPtr LoadDynamicLibrary(string dllPath)
+        {
+            var handle = LinuxApi.dlopen(dllPath, LinuxApi.RTLD_NOW);
+            var lastError = Marshal.GetLastWin32Error();
+
+            if (handle == IntPtr.Zero)
+                ThrowHelper.ThrowENetLibraryLoadFailed(lastError);
+
+            return handle;
+        }
+
+        public override IntPtr GetDynamicLibraryProcedureAddress(IntPtr handle, string procName)
+        {
+            var addr = LinuxApi.dlsym(handle, procName);
+            var lastError = Marshal.GetLastWin32Error();
+
+            if (addr == IntPtr.Zero)
+                ThrowHelper.ThrowENetLibraryProcNotFound(procName, lastError);
+
+            return addr;
+        }
     }
 }

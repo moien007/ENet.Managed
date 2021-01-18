@@ -275,12 +275,7 @@ namespace ENet.Managed.Native
             if (Handle == IntPtr.Zero)
                 ThrowHelper.ThrowENetLibraryNotLoaded();
 
-            IntPtr address = Platform.Current.GetDynamicLibraryProcedureAddress(Handle, procName);
-
-            if (address == IntPtr.Zero)
-                ThrowHelper.ThrowENetLibraryProcNotFound(procName);
-
-            return address;
+            return Platform.Current.GetDynamicLibraryProcedureAddress(Handle, procName);
         }
 
         static void LoadModuleFromResource(bool overwrite)
@@ -390,11 +385,7 @@ namespace ENet.Managed.Native
 
         static IntPtr LoadDllFromFile(string path)
         {
-            var handle = Platform.Current.LoadDynamicLibrary(path);
-            if (handle == IntPtr.Zero)
-                ThrowHelper.ThrowENetLibraryLoadFailed();
-            
-            return handle;
+            return Platform.Current.LoadDynamicLibrary(path);
         }
 
         static string GetTemporaryModulePath()

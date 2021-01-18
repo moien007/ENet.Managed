@@ -43,7 +43,27 @@ namespace ENet.Managed.Platforms
         }
 
         public override void FreeDynamicLibrary(IntPtr hModule) => Win32Api.FreeLibrary(hModule);
-        public override IntPtr LoadDynamicLibrary(string dllPath) => Win32Api.LoadLibrary(dllPath);
-        public override IntPtr GetDynamicLibraryProcedureAddress(IntPtr handle, string procName) => Win32Api.GetProcAddress(handle, procName);
+
+        public override IntPtr LoadDynamicLibrary(string dllPath)
+        {
+            var handle = Win32Api.LoadLibrary(dllPath);
+            var lastError = Marshal.GetLastWin32Error();
+
+            if (handle == IntPtr.Zero)
+                ThrowHelper.ThrowENetLibraryLoadFailed(lastError);
+
+            return handle;
+        }
+
+        public override IntPtr GetDynamicLibraryProcedureAddress(IntPtr handle, string procName)
+        {
+            var addr = Win32Api.GetProcAddress(handle, procName);
+            var lastError = Marshal.GetLastWin32Error();
+
+            if (addr == IntPtr.Zero)
+                ThrowHelper.ThrowENetLibraryProcNotFound(procName, lastError);
+
+            return addr;
+        }
     }
 }
