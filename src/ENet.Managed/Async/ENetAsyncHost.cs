@@ -491,7 +491,7 @@ namespace ENet.Managed.Async
         {
             var serviceTimeout = TimeSpan.FromMilliseconds(SERVICE_TIMEOUT_MS);
 
-            while (m_Stop != false)
+            while (!m_Stop)
             {
                 Thread.Yield();
 
