@@ -19,12 +19,11 @@
     <RepositoryUrl>https://github.com/moien007/ENet.Managed</RepositoryUrl>
     <Description>
       A cross-platform managed wrapper for ENet UDP Networking library.
-      Platforms: Win32|x86_64|ARM64 - Linux x86_64|ARM32|ARM64.
     </Description>
     <PackageProjectUrl>https://github.com/moien007/ENet.Managed</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/moien007/ENet.Managed/blob/master/LICENSE</PackageLicenseUrl>
     <PackageReleaseNotes>
-      - 
+      - ENet binary is being consumed as a native dependency.
     </PackageReleaseNotes>
   </PropertyGroup>
   
