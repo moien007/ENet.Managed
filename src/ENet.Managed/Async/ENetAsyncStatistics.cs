@@ -43,12 +43,12 @@ namespace ENet.Managed.Async
         /// </summary>
         /// <param name="other">The other instant.</param>
         /// <returns>True if all statistics are equal; otherwise false.</returns>
-        public bool Equals(ENetAsyncStatistics other)
+        public bool Equals(ENetAsyncStatistics? other)
         {
             ThrowHelper.ThrowIfArgumentNull(other, nameof(other));
 
             return
-                PeersCount == other.PeersCount &&
+                PeersCount == other!.PeersCount &&
                 DuplicatePeers == other.DuplicatePeers &&
                 ConnectedPeers == other.ConnectedPeers &&
                 TotalReceivedPackets == other.TotalReceivedPackets &&
@@ -57,7 +57,7 @@ namespace ENet.Managed.Async
                 TotalSentData == other.TotalSentData;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is ENetAsyncStatistics)
             {

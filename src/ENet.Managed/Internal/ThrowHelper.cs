@@ -7,7 +7,7 @@ namespace ENet.Managed.Internal
 {
     internal static class ThrowHelper
     {
-        public static void ThrowIfArgumentNull<T>(T arg, string argName) where T : class
+        public static void ThrowIfArgumentNull<T>(T? arg, string argName) where T : class
         {
             if (arg == null)
                 throw new ArgumentNullException(argName);

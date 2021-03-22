@@ -198,7 +198,7 @@ namespace ENet.Managed
             return other.m_Native == m_Native;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is ENetPacket packet)
             {
