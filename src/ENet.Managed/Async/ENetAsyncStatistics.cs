@@ -74,15 +74,13 @@ namespace ENet.Managed.Async
         /// <returns>A hashcode.</returns>
         public override int GetHashCode()
         {
-            // HashCode.Combine() is not available on all frameworks.
-            return
-                PeersCount.GetHashCode() ^
-                DuplicatePeers.GetHashCode() ^
-                ConnectedPeers.GetHashCode() ^
-                TotalReceivedPackets.GetHashCode() ^
-                TotalReceivedData.GetHashCode() ^
-                TotalSentPackets.GetHashCode() ^
-                TotalSentData.GetHashCode();
+            return HashCode.Combine(PeersCount,
+                                    DuplicatePeers,
+                                    ConnectedPeers,
+                                    TotalReceivedPackets,
+                                    TotalReceivedData,
+                                    TotalSentPackets,
+                                    TotalSentData);
         }
     }
 }
