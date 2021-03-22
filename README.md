@@ -31,10 +31,10 @@ Benchmarks for the wrapper itself are not available yet but it should have near 
 | Platform\Arch | X86 | X86_64 | ARM32 | ARM64 |
 |:-------------:|:---:|:------:|:-----:|:-----:|
 |    Windows    | Yes |   Yes  |  Yes  |   -   |
-|     Linux     | Yes |   Yes  |  Yes  |  Yes  |
-|      Mac      |  -  |   No   |   -   |   -   |
+|     Linux     |  -  |   Yes  |  Yes  |  Yes  |
+|      Mac      |  -  |   Yes  |   -   |   -   |
 
-> Linux binaries are statically linked against **[MUSL](https://www.musl-libc.org/faq.html)**.
+> Linux binaries are built and statically linked against **[MUSL](https://www.musl-libc.org/faq.html)**.
 
 # Notes
 * This wrapper deploys ENet binaries to OS's temp folder and dynamically loads them, you can alter this behavior using <code>ENetStartupOptions</code> or by manually initializing ENet using <code>LibENet</code> class.
