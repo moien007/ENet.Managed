@@ -153,7 +153,7 @@ namespace ENet.Managed.Native
         enum LoadMode
         {
             NotLoaded,
-            FromResource,
+            Import,
             CustomFile,
             CustomHandle,
         }
@@ -181,21 +181,11 @@ namespace ENet.Managed.Native
         /// <remarks>
         /// This method only tries to delete the module if it was loaded from resources.
         /// </remarks>
-        /// <returns>Return true if the delete operation was successful; otherwise false.</returns>
+        /// <returns>Always returns true.</returns>
+        [Obsolete("This method is now no-op.")]
         public static bool TryDelete()
         {
-            if (s_LoadMode != LoadMode.FromResource) 
-                return false;
-
-            try
-            {
-                File.Delete(Path);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return true;
         }
 
         /// <summary>
@@ -265,17 +255,18 @@ namespace ENet.Managed.Native
         public static IntPtr GetProc(string procName)
         {
             if (Handle == IntPtr.Zero)
-                ThrowHelper.ThrowENetLibraryNotLoaded();
+                throw new InvalidOperationException($"The ENet library handle is not set. (LoadMode: {s_LoadMode})");
 
             return NativeLibrary.GetExport(Handle, procName);
         }
 
         static void LoadModuleFromNativeDependencies()
         {
+            SetProcsFromImports();
+            
             Path = null;
             Handle = IntPtr.Zero;
-
-            SetProcsFromImports();
+            s_LoadMode = LoadMode.Import;
         }
 
         static void LoadModuleFromHandle(IntPtr handle)

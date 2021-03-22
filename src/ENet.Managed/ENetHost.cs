@@ -512,7 +512,7 @@ namespace ENet.Managed
             }
 
             m_Checksum = s_Crc32Checksum;
-            *m_pChecksumCallback = LibENet.GetProc("enet_crc32");
+            *m_pChecksumCallback = Marshal.GetFunctionPointerForDelegate(LibENet.Crc32);
         }
 
         /// <summary>
