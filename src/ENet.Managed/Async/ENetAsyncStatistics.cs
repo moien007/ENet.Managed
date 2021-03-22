@@ -45,10 +45,9 @@ namespace ENet.Managed.Async
         /// <returns>True if all statistics are equal; otherwise false.</returns>
         public bool Equals(ENetAsyncStatistics? other)
         {
-            ThrowHelper.ThrowIfArgumentNull(other, nameof(other));
-
             return
-                PeersCount == other!.PeersCount &&
+                other != null &&
+                PeersCount == other.PeersCount &&
                 DuplicatePeers == other.DuplicatePeers &&
                 ConnectedPeers == other.ConnectedPeers &&
                 TotalReceivedPackets == other.TotalReceivedPackets &&
