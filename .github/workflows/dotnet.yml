@@ -26,7 +26,7 @@ jobs:
       run: dotnet build --no-restore --configuration ${{ matrix.build_config }}
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal --configuration ${{ matrix.build_config }}
 
     - name: Pack the nuget packages
       run: dotnet pack --no-restore --configuration ${{matrix.build_config}} -p:PackageVersion=${{ github.run_number }} --output ${{ github.workspace }}/pack
