@@ -4,7 +4,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 
 using ENet.Managed.Internal;
-using ENet.Managed.Platforms;
 
 #nullable disable // Notice!
 
@@ -162,12 +161,12 @@ namespace ENet.Managed.Native
         private static LoadMode s_LoadMode = LoadMode.NotLoaded;
 
         /// <summary>
-        /// Current loaded ENet dynamic library path
+        /// Current loaded ENet dynamic library path.
         /// </summary>
-        public static string Path { get; set; } = GetTemporaryModulePath();
+        public static string Path { get; set; } = null;
 
         /// <summary>
-        /// Current loaded ENet dynamic library handle
+        /// Current loaded ENet dynamic library handle.
         /// </summary>
         public static IntPtr Handle { get; private set; } = IntPtr.Zero;
 
@@ -211,7 +210,7 @@ namespace ENet.Managed.Native
             {
                 Deinitialize?.Invoke();
 
-                Platform.Current.FreeDynamicLibrary(Handle);
+                NativeLibrary.Free(Handle);
             }
             catch (Exception ex)
             {
@@ -231,14 +230,7 @@ namespace ENet.Managed.Native
         {
             if (IsLoaded) return;
 
-            try
-            {
-                LoadModuleFromResource(overwrite: false);
-            }
-            catch
-            {
-                LoadModuleFromResource(overwrite: true);
-            }
+            LoadModuleFromNativeDependencies();
         }
 
         /// <summary>
@@ -275,33 +267,15 @@ namespace ENet.Managed.Native
             if (Handle == IntPtr.Zero)
                 ThrowHelper.ThrowENetLibraryNotLoaded();
 
-            return Platform.Current.GetDynamicLibraryProcedureAddress(Handle, procName);
+            return NativeLibrary.GetExport(Handle, procName);
         }
 
-        static void LoadModuleFromResource(bool overwrite)
+        static void LoadModuleFromNativeDependencies()
         {
-            var path = GetTemporaryModulePath();
+            Path = null;
+            Handle = IntPtr.Zero;
 
-            if (!File.Exists(path) || overwrite)
-            {
-                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
-                File.WriteAllBytes(path, Platform.Current.GetENetBinaryBytes());
-            }
-
-            Handle = LoadDllFromFile(path);
-            Path = path;
-
-            try
-            {
-                LoadModuleProcs();
-                s_LoadMode = LoadMode.FromResource;
-            }
-            catch
-            {
-                Handle = IntPtr.Zero;
-                Path = null;
-                throw;
-            }
+            SetProcsFromImports();
         }
 
         static void LoadModuleFromHandle(IntPtr handle)
@@ -310,7 +284,7 @@ namespace ENet.Managed.Native
 
             try
             {
-                LoadModuleProcs();
+                SetProcsFromModule();
                 s_LoadMode = LoadMode.CustomHandle;
             }
             catch
@@ -323,12 +297,12 @@ namespace ENet.Managed.Native
 
         static void LoadModuleFromFile(string path)
         {
-            Handle = LoadDllFromFile(path);
+            Handle = NativeLibrary.Load(path);
             Path = string.Empty;
 
             try
             {
-                LoadModuleProcs();
+                SetProcsFromModule();
                 s_LoadMode = LoadMode.CustomFile;
             }
             catch
@@ -339,7 +313,50 @@ namespace ENet.Managed.Native
             }
         }
 
-        static void LoadModuleProcs()
+        static void SetProcsFromImports()
+        {
+            Initialize = LibENetImports.Initialize;
+            InitializeWithCallbacks = LibENetImports.InitializeWithCallbacks;
+            Deinitialize = LibENetImports.Deinitialize;
+            LinkedVersion = LibENetImports.LinkedVersion;
+
+            AddressGetHost = LibENetImports.AddressGetHost;
+            AddressGetHostIP = LibENetImports.AddressGetHostIP;
+            AddressSetHost = LibENetImports.AddressSetHost;
+            AddressSetHostIP = LibENetImports.AddressSetHostIP;
+
+            HostBandwidthLimit = LibENetImports.HostBandwidthLimit;
+            HostBroadcast = LibENetImports.HostBroadcast;
+            HostChannelLimit = LibENetImports.HostChannelLimit;
+            HostCheckEvents = LibENetImports.HostCheckEvents;
+            HostCompress = LibENetImports.HostCompress;
+            HostCompressWithRangeCoder = LibENetImports.HostCompressWithRangeCoder;
+            HostConnect = LibENetImports.HostConnect;
+            HostCreate = LibENetImports.HostCreate;
+            HostDestroy = LibENetImports.HostDestroy;
+            HostFlush = LibENetImports.HostFlush;
+            HostService = LibENetImports.HostService;
+
+            Crc32 = LibENetImports.Crc32;
+            PacketCreate = LibENetImports.PacketCreate;
+            PacketDestroy = LibENetImports.PacketDestroy;
+            PacketResize = LibENetImports.PacketResize;
+
+            PeerDisconnect = LibENetImports.PeerDisconnect;
+            PeerDisconnectLater = LibENetImports.PeerDisconnectLater;
+            PeerDisconnectNow = LibENetImports.PeerDisconnectNow;
+            PeerPing = LibENetImports.PeerPing;
+            PeerPingInterval = LibENetImports.PeerPingInterval;
+            PeerReceive = LibENetImports.PeerReceive;
+            PeerReset = LibENetImports.PeerReset;
+            PeerSend = LibENetImports.PeerSend;
+            PeerThrottleConfigure = LibENetImports.PeerThrottleConfigure;
+            PeerTimeout = LibENetImports.PeerTimeout;
+
+            InteropHelperSizeOrOffset = LibENetImports.InteropHelperSizeOrOffset;
+        }
+
+        static void SetProcsFromModule()
         {
             Initialize = GetProc<InitializeDelegate>("enet_initialize");
             InitializeWithCallbacks = GetProc<InitializeWithCallbacksDelegate>("enet_initialize_with_callbacks");
@@ -352,7 +369,6 @@ namespace ENet.Managed.Native
             AddressSetHostIP = GetProc<AddressSetHostIPDelegate>("enet_address_set_host_ip");
 
             HostBandwidthLimit = GetProc<HostBandwidthLimitDelegate>("enet_host_bandwidth_limit");
-            //HostBandwidthThrottle = GetProc<ENetHostBandwidthThrottleDelegate>("enet_host_bandwidth_throttle");
             HostBroadcast = GetProc<HostBroadcastDelegate>("enet_host_broadcast");
             HostChannelLimit = GetProc<HostChannelLimitDelegate>("enet_host_channel_limit");
             HostCheckEvents = GetProc<HostCheckEventsDelegate>("enet_host_check_events");
@@ -381,17 +397,6 @@ namespace ENet.Managed.Native
             PeerTimeout = GetProc<PeerTimeoutDelegate>("enet_peer_timeout");
 
             InteropHelperSizeOrOffset = GetProc<InteropHelperSizeOrOffsetDelegate>("enet_interophelper_sizeoroffset");
-        }
-
-        static IntPtr LoadDllFromFile(string path)
-        {
-            return Platform.Current.LoadDynamicLibrary(path);
-        }
-
-        static string GetTemporaryModulePath()
-        {
-            var dllName = Platform.Current.GetENetBinaryName();
-            return System.IO.Path.Combine(System.IO.Path.GetTempPath(), "enet_managed_resource", dllName);
         }
     }
 }
