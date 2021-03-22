@@ -29,7 +29,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration ${{ matrix.build_config }}
 
     - name: Pack the nuget packages
-      run: dotnet pack --no-restore --configuration ${{matrix.build_config}} -p:PackageVersion=${{ github.run_number }} --output ${{ github.workspace }}/pack
+      run: dotnet pack --no-restore --configuration ${{matrix.build_config}} -p:PackageVersion=5.0.3.${{ github.run_number }}-alpha --output ${{ github.workspace }}/pack
 
     - name: Upload the nuget packages
       uses: actions/upload-artifact@v2.2.2
