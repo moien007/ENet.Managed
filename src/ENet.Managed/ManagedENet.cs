@@ -110,7 +110,7 @@ namespace ENet.Managed
             }
             else
             {
-                // Load from resource
+                // load from native dependencies.
                 LibENet.Load();
             }
 
