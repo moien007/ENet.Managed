@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-using ENet.Managed.Common;
 
 namespace ENet.Managed.Internal
 {
@@ -11,18 +9,6 @@ namespace ENet.Managed.Internal
         {
             if (arg == null)
                 throw new ArgumentNullException(argName);
-        }
-
-        [DoesNotReturn]
-        public static void ThrowCurrentArchitectureNotSupportedYet()
-        {
-            throw new PlatformNotSupportedException($"Architecture {RuntimeInformation.OSArchitecture} is not supported yet on current platform.");
-        }
-
-        [DoesNotReturn]
-        public static void ThrowCurrentPlatfromIsNotSupportedYet()
-        {
-            throw new PlatformNotSupportedException("Current OS platform is not supported yet.");
         }
 
         [DoesNotReturn]
@@ -41,24 +27,6 @@ namespace ENet.Managed.Internal
         public static void ThrowENetAllocatorRefIsNull()
         {
             throw new NullReferenceException($"{nameof(Allocators.ENetAllocator)} reference is null unexpectedly");
-        }
-
-        [DoesNotReturn]
-        public static void ThrowENetLibraryLoadFailed(int lastError)
-        {
-            throw new ENetException($"Failed to load ENet dynamic library. (Native last error: {lastError})");
-        }
-
-        [DoesNotReturn]
-        public static void ThrowENetLibraryNotLoaded()
-        {
-            throw new InvalidOperationException("ENet library is not loaded.");
-        }
-
-        [DoesNotReturn]
-        public static void ThrowENetLibraryProcNotFound(string procName, int lastError)
-        {
-            throw new DllNotFoundException($"Procedure '{procName}' doesn't found within ENet dynamic library. (LastError: {lastError})");
         }
 
         [DoesNotReturn]
