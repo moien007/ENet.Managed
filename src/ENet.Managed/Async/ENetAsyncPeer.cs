@@ -301,6 +301,36 @@ namespace ENet.Managed.Async
             return Peer;
         }
 
+        public void GetExclusiveAccess(Action<ENetPeer> accessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(accessor, nameof(accessor));
+
+            using (var lockguard = AsyncHost.SharedStateLock.Acquire())
+            {
+                accessor.Invoke(Peer);
+            }
+        }
+
+        public async ValueTask GetExclusiveAccessAsync(Action<ENetPeer> accessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(accessor, nameof(accessor));
+
+            using (var lockguard = await AsyncHost.SharedStateLock.AcquireAsync().ConfigureAwait(false))
+            {
+                accessor.Invoke(Peer);
+            }
+        }
+
+        public async ValueTask GetExclusiveAccessAsync(Func<ENetPeer, ValueTask> asyncAccessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(asyncAccessor, nameof(asyncAccessor));
+
+            using (var lockguard = await AsyncHost.SharedStateLock.AcquireAsync().ConfigureAwait(false))
+            {
+                await asyncAccessor.Invoke(Peer).ConfigureAwait(false);
+            }
+        }
+
         internal void OnDisconnect(uint data)
         {
             m_DisconnectCompletionSource.TrySetResult(data);
