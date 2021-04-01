@@ -446,6 +446,36 @@ namespace ENet.Managed.Async
             }
         }
 
+        public void GetExclusiveAccess(Action<ENetHost> accessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(accessor, nameof(accessor));
+
+            using (var lockguard = SharedStateLock.Acquire())
+            {
+                accessor.Invoke(lockguard.SharedState.Host);
+            }
+        }
+
+        public async ValueTask GetExclusiveAccessAsync(Action<ENetHost> accessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(accessor, nameof(accessor));
+
+            using (var lockguard = await SharedStateLock.AcquireAsync().ConfigureAwait(false))
+            {
+                accessor.Invoke(lockguard.SharedState.Host);
+            }
+        }
+
+        public async ValueTask GetExclusiveAccessAsync(Func<ENetHost, ValueTask> asyncAccessor)
+        {
+            ThrowHelper.ThrowIfArgumentNull(asyncAccessor, nameof(asyncAccessor));
+
+            using (var lockguard = await SharedStateLock.AcquireAsync().ConfigureAwait(false))
+            {
+                await asyncAccessor.Invoke(lockguard.SharedState.Host).ConfigureAwait(false);
+            }
+        }
+
         /// <summary>
         /// Stops the host, if it have not, disposes the host and other resources.
         /// </summary>
