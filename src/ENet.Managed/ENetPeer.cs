@@ -51,6 +51,65 @@ namespace ENet.Managed
             }
         }
 
+        /// <summary>
+        /// Get or set peer's MTU.
+        /// </summary>
+        public uint MTU
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->MTU;
+            }
+            set
+            {
+                ThrowIfNull();
+
+                m_Native->MTU = value;
+            }
+        }
+
+
+        /// <summary>
+        /// Get peer's last RTT.
+        /// </summary>
+        public uint LastRoundTripTime
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->LastRoundTripTime;
+            }
+        }
+
+        /// <summary>
+        /// Get peer's RTT.
+        /// </summary>
+        public uint RoundTripTime
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->RoundTripTime;
+            }
+        }
+
+        /// <summary>
+        /// Get peer's packet loss.
+        /// </summary>
+        public uint PacketLoss
+        {
+            get
+            {
+                ThrowIfNull();
+
+                return m_Native->PacketLoss;
+            }
+        }
+
         public ENetPeer(NativeENetPeer* peer)
         {
             if (peer == null)
