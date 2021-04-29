@@ -587,7 +587,7 @@ namespace ENet.Managed.Async
                 case ENetEventType.Receive:
                     asyncPeer = getAsyncPeer();
                     asyncPeer.OnReceive(@event.Packet, @event.ChannelId);
-                    @event.Packet.RemoveRef();
+                    @event.Packet.Destroy();
                     break;
 
                 default:
